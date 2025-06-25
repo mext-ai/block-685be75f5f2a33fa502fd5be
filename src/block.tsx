@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Stars } from '@react-three/drei';
 import * as THREE from 'three';
@@ -32,7 +32,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   const [gameMode, setGameMode] = useState<'tutorial' | 'practice' | 'challenge'>('tutorial');
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [score, setScore] = useState(0);
-  const [message, setMessage] = useState('Welcome! Select atoms and drag them to build molecules.');
+  const [message, setMessage] = useState('Welcome! Select atoms from the periodic table to start building molecules.');
 
   // 3D scene state
   const [placedAtoms, setPlacedAtoms] = useState<PlacedAtom[]>([]);
@@ -44,6 +44,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   const [builtMolecules, setBuiltMolecules] = useState<string[]>([]);
 
   const atomIdCounter = useRef(0);
+  const messageTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Send completion event
   useEffect(() => {
@@ -65,6 +66,17 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     }
   }, [builtMolecules.length, score]);
 
+  // Helper function to show temporary messages
+  const showMessage = useCallback((msg: string, duration = 3000) => {
+    setMessage(msg);
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+    messageTimeoutRef.current = setTimeout(() => {
+      setMessage('');
+    }, duration);
+  }, []);
+
   // Add atom to scene
   const addAtom = (atomSymbol: string) => {
     if (!ATOMS[atomSymbol]) return;
@@ -73,15 +85,15 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
       id: `atom-${++atomIdCounter.current}`,
       symbol: atomSymbol,
       position: [
-        (Math.random() - 0.5) * 6,
         (Math.random() - 0.5) * 4,
-        (Math.random() - 0.5) * 4
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2
       ],
       atomData: ATOMS[atomSymbol]
     };
 
     setPlacedAtoms(prev => [...prev, newAtom]);
-    setMessage(`Added ${ATOMS[atomSymbol].name} atom. Drag it to position!`);
+    showMessage(`Added ${ATOMS[atomSymbol].name} atom. Drag it to build molecules!`);
   };
 
   // Handle atom selection from periodic table
@@ -96,92 +108,107 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setSelectedAtomId(atomId);
   };
 
-  // Handle atom drag end - check for bonding
-  const handleAtomDragEnd = (atomId: string, newPosition: [number, number, number]) => {
-    setDragging(null);
-    
-    // Update atom position
-    setPlacedAtoms(prev => prev.map(atom => 
-      atom.id === atomId ? { ...atom, position: newPosition } : atom
-    ));
-
-    // Check for potential bonds with nearby atoms
-    const draggedAtom = placedAtoms.find(a => a.id === atomId);
-    if (!draggedAtom) return;
-
-    placedAtoms.forEach(otherAtom => {
-      if (otherAtom.id === atomId) return;
-
-      const distance = Math.sqrt(
-        Math.pow(newPosition[0] - otherAtom.position[0], 2) +
-        Math.pow(newPosition[1] - otherAtom.position[1], 2) +
-        Math.pow(newPosition[2] - otherAtom.position[2], 2)
-      );
-
-      // If atoms are close enough and can bond
-      if (distance < 1.5 && canBond(draggedAtom.atomData, otherAtom.atomData)) {
-        // Check if bond already exists
-        const bondExists = bonds.some(bond => 
-          (bond.atom1Id === atomId && bond.atom2Id === otherAtom.id) ||
-          (bond.atom1Id === otherAtom.id && bond.atom2Id === atomId)
-        );
-
-        if (!bondExists) {
-          const bondType = getBondType(draggedAtom.atomData, otherAtom.atomData);
-          const newBond: MolecularBond = {
-            id: `bond-${Date.now()}`,
-            atom1Id: atomId,
-            atom2Id: otherAtom.id,
-            type: bondType,
-            strength: 1
-          };
-
-          setBonds(prev => [...prev, newBond]);
-          setScore(prev => prev + (bondType === 'ionic' ? 15 : 10));
-          setMessage(`${bondType.toUpperCase()} bond formed! ${draggedAtom.symbol}-${otherAtom.symbol}`);
-          
-          // Check if molecule is complete
-          checkMoleculeCompletion();
-        }
-      }
-    });
-  };
-
-  // Check if a known molecule has been built
-  const checkMoleculeCompletion = () => {
+  // Check if molecule is complete
+  const checkMoleculeCompletion = useCallback((currentAtoms: PlacedAtom[], currentBonds: MolecularBond[]) => {
     MOLECULES.forEach(molecule => {
       const atomCounts = molecule.atoms.reduce((acc, atom) => {
         acc[atom] = (acc[atom] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      const placedCounts = placedAtoms.reduce((acc, atom) => {
+      const placedCounts = currentAtoms.reduce((acc, atom) => {
         acc[atom.symbol] = (acc[atom.symbol] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
-      // Check if we have the right atoms
-      const hasRequiredAtoms = Object.entries(atomCounts).every(([symbol, count]) => 
-        placedCounts[symbol] >= count
-      );
+      // Check if we have the exact atoms needed (not more)
+      const hasExactAtoms = Object.entries(atomCounts).every(([symbol, count]) => 
+        placedCounts[symbol] === count
+      ) && Object.keys(placedCounts).length === Object.keys(atomCounts).length;
 
-      // Check if we have enough bonds (simplified check)
+      // Check if we have the right number of bonds
       const requiredBonds = molecule.atoms.length - 1;
-      const hasBonds = bonds.length >= requiredBonds;
+      const hasCorrectBonds = currentBonds.length === requiredBonds;
 
-      if (hasRequiredAtoms && hasBonds && !builtMolecules.includes(molecule.formula)) {
+      if (hasExactAtoms && hasCorrectBonds && !builtMolecules.includes(molecule.formula)) {
         setBuiltMolecules(prev => [...prev, molecule.formula]);
         setScore(prev => prev + 50);
-        setMessage(`🎉 Molecule completed: ${molecule.name} (${molecule.formula})!`);
+        showMessage(`🎉 Molecule completed: ${molecule.name} (${molecule.formula})! +50 points`, 4000);
         
         // Auto-advance challenge mode
         if (gameMode === 'challenge' && currentChallenge < MOLECULES.length - 1) {
           setTimeout(() => {
             setCurrentChallenge(prev => prev + 1);
-            setMessage(`Next challenge: Build ${MOLECULES[currentChallenge + 1]?.formula}`);
-          }, 2000);
+            showMessage(`Next challenge: Build ${MOLECULES[currentChallenge + 1]?.formula}`);
+          }, 3000);
         }
       }
+    });
+  }, [builtMolecules, gameMode, currentChallenge, showMessage]);
+
+  // Handle atom drag end - check for bonding
+  const handleAtomDragEnd = (atomId: string, newPosition: [number, number, number]) => {
+    setDragging(null);
+    
+    // Update atom position
+    setPlacedAtoms(prev => {
+      const updatedAtoms = prev.map(atom => 
+        atom.id === atomId ? { ...atom, position: newPosition } : atom
+      );
+
+      // Check for potential bonds with nearby atoms
+      const draggedAtom = updatedAtoms.find(a => a.id === atomId);
+      if (!draggedAtom) return updatedAtoms;
+
+      let newBonds: MolecularBond[] = [];
+      let bondsFormed = false;
+
+      updatedAtoms.forEach(otherAtom => {
+        if (otherAtom.id === atomId) return;
+
+        const distance = Math.sqrt(
+          Math.pow(newPosition[0] - otherAtom.position[0], 2) +
+          Math.pow(newPosition[1] - otherAtom.position[1], 2) +
+          Math.pow(newPosition[2] - otherAtom.position[2], 2)
+        );
+
+        // If atoms are close enough and can bond
+        if (distance < 1.5 && canBond(draggedAtom.atomData, otherAtom.atomData)) {
+          // Check if bond already exists
+          const bondExists = bonds.some(bond => 
+            (bond.atom1Id === atomId && bond.atom2Id === otherAtom.id) ||
+            (bond.atom1Id === otherAtom.id && bond.atom2Id === atomId)
+          );
+
+          if (!bondExists) {
+            const bondType = getBondType(draggedAtom.atomData, otherAtom.atomData);
+            const newBond: MolecularBond = {
+              id: `bond-${Date.now()}-${Math.random()}`,
+              atom1Id: atomId,
+              atom2Id: otherAtom.id,
+              type: bondType,
+              strength: 1
+            };
+
+            newBonds.push(newBond);
+            bondsFormed = true;
+            setScore(prev => prev + (bondType === 'ionic' ? 15 : 10));
+            showMessage(`${bondType.toUpperCase()} bond formed! ${draggedAtom.symbol}-${otherAtom.symbol} (+${bondType === 'ionic' ? 15 : 10} points)`);
+          }
+        }
+      });
+
+      // Update bonds if new ones were formed
+      if (bondsFormed) {
+        setBonds(prev => {
+          const updatedBonds = [...prev, ...newBonds];
+          // Check for molecule completion with updated state
+          setTimeout(() => checkMoleculeCompletion(updatedAtoms, updatedBonds), 100);
+          return updatedBonds;
+        });
+      }
+
+      return updatedAtoms;
     });
   };
 
@@ -192,17 +219,22 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setBuiltMolecules([]);
     setScore(0);
     setSelectedAtomId(null);
-    setMessage('Scene reset. Start building molecules!');
+    setDragging(null);
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+    showMessage('Scene reset. Select atoms from the periodic table to start building!');
   };
 
   // Toggle game mode
   const handleModeChange = (mode: 'tutorial' | 'practice' | 'challenge') => {
     setGameMode(mode);
     setCurrentChallenge(0);
-    setMessage(
-      mode === 'tutorial' ? 'Tutorial mode: Explore and learn!' :
-      mode === 'practice' ? 'Practice mode: Build any molecules!' :
-      'Challenge mode: Build specific molecules!'
+    handleReset(); // Reset when changing modes
+    showMessage(
+      mode === 'tutorial' ? 'Tutorial mode: Explore and learn about molecular bonding!' :
+      mode === 'practice' ? 'Practice mode: Build any molecules you want!' :
+      `Challenge mode: Build ${MOLECULES[0]?.formula} to start!`
     );
   };
 
@@ -210,11 +242,25 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   const handleNextChallenge = () => {
     if (currentChallenge < MOLECULES.length - 1) {
       setCurrentChallenge(prev => prev + 1);
-      setMessage(`Challenge ${currentChallenge + 2}: Build ${MOLECULES[currentChallenge + 1]?.formula}`);
+      showMessage(`Challenge ${currentChallenge + 2}: Build ${MOLECULES[currentChallenge + 1]?.formula}`);
+      // Clear current atoms and bonds for new challenge
+      setPlacedAtoms([]);
+      setBonds([]);
     } else {
-      setMessage('🏆 All challenges completed! Great job!');
+      showMessage('🏆 All challenges completed! Congratulations!', 5000);
     }
   };
+
+  // Add some starter atoms in tutorial mode
+  useEffect(() => {
+    if (gameMode === 'tutorial' && placedAtoms.length === 0) {
+      // Add a couple of hydrogen atoms to get started
+      setTimeout(() => {
+        addAtom('H');
+        setTimeout(() => addAtom('H'), 500);
+      }, 1000);
+    }
+  }, [gameMode, placedAtoms.length]);
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
@@ -224,9 +270,10 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         style={{ background: 'linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)' }}
       >
         {/* Lighting */}
-        <ambientLight intensity={0.4} />
+        <ambientLight intensity={0.6} />
         <pointLight position={[10, 10, 10]} intensity={1} />
         <pointLight position={[-10, -10, -10]} intensity={0.5} color="#0066ff" />
+        <spotLight position={[0, 10, 0]} angle={0.3} penumbra={1} intensity={0.5} />
         
         {/* Environment */}
         <Stars radius={300} depth={60} count={1000} factor={7} />
