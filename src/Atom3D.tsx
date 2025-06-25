@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
 import { AtomData } from './atomData';
@@ -28,6 +28,10 @@ export const Atom3D: React.FC<Atom3DProps> = ({
   const atomRef = useRef<THREE.Group>(null);
   const electronRefs = useRef<THREE.Group[]>([]);
   const [hovered, setHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState<THREE.Vector3>(new THREE.Vector3());
+  
+  const { camera, gl, raycaster, pointer } = useThree();
 
   // Animation for electron orbits
   useFrame((state) => {
@@ -46,28 +50,75 @@ export const Atom3D: React.FC<Atom3DProps> = ({
       });
     }
     
-    // Gentle floating animation
-    if (atomRef.current && !dragging) {
-      atomRef.current.position.y = position[1] + Math.sin(state.clock.getElapsedTime() * 0.5) * 0.1;
+    // Gentle floating animation (only when not dragging)
+    if (atomRef.current && !isDragging && !dragging) {
+      const baseY = position[1];
+      atomRef.current.position.y = baseY + Math.sin(state.clock.getElapsedTime() * 0.5) * 0.1;
+    }
+
+    // Handle dragging
+    if (isDragging && atomRef.current) {
+      // Create a plane for dragging
+      const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+      const intersection = new THREE.Vector3();
+      
+      // Update raycaster with current mouse position
+      raycaster.setFromCamera(pointer, camera);
+      
+      if (raycaster.ray.intersectPlane(plane, intersection)) {
+        atomRef.current.position.copy(intersection.add(dragOffset));
+      }
     }
   });
 
   const handlePointerDown = (event: THREE.Event) => {
     event.stopPropagation();
+    setIsDragging(true);
     onDragStart();
     onSelect();
+    
+    // Calculate drag offset
+    if (atomRef.current && event.point) {
+      const offset = atomRef.current.position.clone().sub(event.point);
+      setDragOffset(offset);
+    }
+    
+    gl.domElement.style.cursor = 'grabbing';
   };
 
   const handlePointerUp = (event: THREE.Event) => {
     event.stopPropagation();
-    if (atomRef.current) {
+    
+    if (setIsDragging && atomRef.current) {
+      setIsDragging(false);
       onDragEnd([
         atomRef.current.position.x,
         atomRef.current.position.y,
         atomRef.current.position.z
       ]);
     }
+    
+    gl.domElement.style.cursor = hovered ? 'grab' : 'default';
   };
+
+  const handlePointerEnter = () => {
+    setHovered(true);
+    gl.domElement.style.cursor = 'grab';
+  };
+
+  const handlePointerLeave = () => {
+    setHovered(false);
+    if (!isDragging) {
+      gl.domElement.style.cursor = 'default';
+    }
+  };
+
+  // Update position when prop changes
+  useEffect(() => {
+    if (atomRef.current && !isDragging) {
+      atomRef.current.position.set(...position);
+    }
+  }, [position, isDragging]);
 
   const scale = selected ? 1.2 : hovered ? 1.1 : 1.0;
   const emissiveIntensity = selected ? 0.3 : hovered ? 0.2 : 0.1;
@@ -78,8 +129,8 @@ export const Atom3D: React.FC<Atom3DProps> = ({
       position={position}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
     >
       {/* Main atom sphere */}
       <Sphere args={[atomData.radius, 32, 32]} scale={scale}>
@@ -99,7 +150,6 @@ export const Atom3D: React.FC<Atom3DProps> = ({
         color="white"
         anchorX="center"
         anchorY="middle"
-        font="/fonts/roboto-regular.woff"
       >
         {atomData.symbol}
       </Text>
@@ -154,6 +204,14 @@ export const Atom3D: React.FC<Atom3DProps> = ({
         <mesh>
           <ringGeometry args={[atomData.radius + 0.2, atomData.radius + 0.3, 32]} />
           <meshBasicMaterial color="#ffff00" transparent opacity={0.8} />
+        </mesh>
+      )}
+
+      {/* Bonding range indicator when dragging */}
+      {dragging && (
+        <mesh>
+          <ringGeometry args={[1.4, 1.5, 32]} />
+          <meshBasicMaterial color="#00ff00" transparent opacity={0.3} />
         </mesh>
       )}
     </group>
