@@ -17,6 +17,7 @@ interface PlacedAtom {
   symbol: string;
   position: [number, number, number];
   atomData: AtomData;
+  availableBonds: number; // Track how many bonds this atom can still make
 }
 
 interface MolecularBond {
@@ -42,6 +43,10 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   const [dragging, setDragging] = useState<string | null>(null);
   const [showElectrons, setShowElectrons] = useState(true);
   const [builtMolecules, setBuiltMolecules] = useState<string[]>([]);
+  
+  // Bond creation mode
+  const [bondingMode, setBondingMode] = useState(false);
+  const [firstAtomForBond, setFirstAtomForBond] = useState<string | null>(null);
 
   const atomIdCounter = useRef(0);
   const messageTimeoutRef = useRef<NodeJS.Timeout>();
@@ -77,10 +82,29 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     }, duration);
   }, []);
 
+  // Calculate available bonds for an atom based on valence electrons and existing bonds
+  const calculateAvailableBonds = (atomData: AtomData, existingBonds: number): number => {
+    // Simple bonding rules based on valence electrons
+    const maxBonds = {
+      'H': 1,  // Hydrogen can make 1 bond
+      'O': 2,  // Oxygen can make 2 bonds
+      'N': 3,  // Nitrogen can make 3 bonds
+      'C': 4,  // Carbon can make 4 bonds
+      'F': 1,  // Fluorine can make 1 bond
+      'Cl': 1, // Chlorine can make 1 bond
+      'Na': 1, // Sodium can make 1 bond (ionic)
+      'Mg': 2  // Magnesium can make 2 bonds (ionic)
+    };
+    
+    const max = maxBonds[atomData.symbol as keyof typeof maxBonds] || 1;
+    return Math.max(0, max - existingBonds);
+  };
+
   // Add atom to scene
   const addAtom = (atomSymbol: string) => {
     if (!ATOMS[atomSymbol]) return;
 
+    const atomData = ATOMS[atomSymbol];
     const newAtom: PlacedAtom = {
       id: `atom-${++atomIdCounter.current}`,
       symbol: atomSymbol,
@@ -89,11 +113,12 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         (Math.random() - 0.5) * 2,
         (Math.random() - 0.5) * 2
       ],
-      atomData: ATOMS[atomSymbol]
+      atomData: atomData,
+      availableBonds: calculateAvailableBonds(atomData, 0)
     };
 
     setPlacedAtoms(prev => [...prev, newAtom]);
-    showMessage(`Added ${ATOMS[atomSymbol].name} atom. Drag it to build molecules!`);
+    showMessage(`Added ${atomData.name} atom. Use Bond Mode to connect atoms!`);
   };
 
   // Handle atom selection from periodic table
@@ -104,8 +129,152 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
 
   // Handle atom drag start
   const handleAtomDragStart = (atomId: string) => {
-    setDragging(atomId);
-    setSelectedAtomId(atomId);
+    if (!bondingMode) {
+      setDragging(atomId);
+      setSelectedAtomId(atomId);
+    }
+  };
+
+  // Handle atom click for bonding
+  const handleAtomClick = (atomId: string) => {
+    if (!bondingMode) {
+      setSelectedAtomId(atomId);
+      return;
+    }
+
+    // In bonding mode
+    if (!firstAtomForBond) {
+      // Select first atom for bonding
+      const atom = placedAtoms.find(a => a.id === atomId);
+      if (atom && atom.availableBonds > 0) {
+        setFirstAtomForBond(atomId);
+        showMessage(`Selected ${atom.symbol}. Now click another atom to create a bond.`);
+      } else {
+        showMessage(`${atom?.symbol} cannot form more bonds!`);
+      }
+    } else if (firstAtomForBond === atomId) {
+      // Clicked same atom, cancel
+      setFirstAtomForBond(null);
+      showMessage('Bond creation cancelled.');
+    } else {
+      // Try to create bond between first and second atom
+      createBond(firstAtomForBond, atomId);
+      setFirstAtomForBond(null);
+    }
+  };
+
+  // Create bond between two atoms
+  const createBond = (atom1Id: string, atom2Id: string) => {
+    const atom1 = placedAtoms.find(a => a.id === atom1Id);
+    const atom2 = placedAtoms.find(a => a.id === atom2Id);
+
+    if (!atom1 || !atom2) {
+      showMessage('Invalid atoms selected!');
+      return;
+    }
+
+    // Check if bond already exists
+    const bondExists = bonds.some(bond => 
+      (bond.atom1Id === atom1Id && bond.atom2Id === atom2Id) ||
+      (bond.atom1Id === atom2Id && bond.atom2Id === atom1Id)
+    );
+
+    if (bondExists) {
+      showMessage('Bond already exists between these atoms!');
+      return;
+    }
+
+    // Check if atoms can bond
+    if (atom1.availableBonds === 0) {
+      showMessage(`${atom1.symbol} cannot form more bonds!`);
+      return;
+    }
+
+    if (atom2.availableBonds === 0) {
+      showMessage(`${atom2.symbol} cannot form more bonds!`);
+      return;
+    }
+
+    if (!canBond(atom1.atomData, atom2.atomData)) {
+      showMessage(`${atom1.symbol} and ${atom2.symbol} cannot bond together!`);
+      return;
+    }
+
+    // Calculate distance to ensure atoms are reasonably close
+    const distance = Math.sqrt(
+      Math.pow(atom1.position[0] - atom2.position[0], 2) +
+      Math.pow(atom1.position[1] - atom2.position[1], 2) +
+      Math.pow(atom1.position[2] - atom2.position[2], 2)
+    );
+
+    if (distance > 4) {
+      showMessage('Atoms are too far apart! Move them closer together first.');
+      return;
+    }
+
+    // Create the bond
+    const bondType = getBondType(atom1.atomData, atom2.atomData);
+    const newBond: MolecularBond = {
+      id: `bond-${Date.now()}-${Math.random()}`,
+      atom1Id: atom1Id,
+      atom2Id: atom2Id,
+      type: bondType,
+      strength: 1
+    };
+
+    // Update bonds
+    setBonds(prev => [...prev, newBond]);
+
+    // Update available bonds for both atoms
+    setPlacedAtoms(prev => prev.map(atom => {
+      if (atom.id === atom1Id || atom.id === atom2Id) {
+        const existingBonds = bonds.filter(bond => 
+          bond.atom1Id === atom.id || bond.atom2Id === atom.id
+        ).length + 1; // +1 for the bond we're adding
+        
+        return {
+          ...atom,
+          availableBonds: calculateAvailableBonds(atom.atomData, existingBonds)
+        };
+      }
+      return atom;
+    }));
+
+    // Update score
+    setScore(prev => prev + (bondType === 'ionic' ? 15 : 10));
+    showMessage(`${bondType.toUpperCase()} bond created! ${atom1.symbol}-${atom2.symbol} (+${bondType === 'ionic' ? 15 : 10} points)`);
+
+    // Check for molecule completion
+    setTimeout(() => {
+      const updatedAtoms = placedAtoms;
+      const updatedBonds = [...bonds, newBond];
+      checkMoleculeCompletion(updatedAtoms, updatedBonds);
+    }, 100);
+  };
+
+  // Remove bond
+  const removeBond = (bondId: string) => {
+    const bondToRemove = bonds.find(b => b.id === bondId);
+    if (!bondToRemove) return;
+
+    setBonds(prev => prev.filter(bond => bond.id !== bondId));
+
+    // Update available bonds for affected atoms
+    setPlacedAtoms(prev => prev.map(atom => {
+      if (atom.id === bondToRemove.atom1Id || atom.id === bondToRemove.atom2Id) {
+        const existingBonds = bonds.filter(bond => 
+          bond.id !== bondId && (bond.atom1Id === atom.id || bond.atom2Id === atom.id)
+        ).length;
+        
+        return {
+          ...atom,
+          availableBonds: calculateAvailableBonds(atom.atomData, existingBonds)
+        };
+      }
+      return atom;
+    }));
+
+    showMessage('Bond removed!');
   };
 
   // Check if molecule is complete
@@ -121,19 +290,34 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         return acc;
       }, {} as Record<string, number>);
 
-      // Check if we have the exact atoms needed (not more)
+      // Check if we have the exact atoms needed
       const hasExactAtoms = Object.entries(atomCounts).every(([symbol, count]) => 
         placedCounts[symbol] === count
       ) && Object.keys(placedCounts).length === Object.keys(atomCounts).length;
 
-      // Check if we have the right number of bonds
-      const requiredBonds = molecule.atoms.length - 1;
-      const hasCorrectBonds = currentBonds.length === requiredBonds;
+      // For simple molecules, check if we have the right number of bonds
+      let hasCorrectBonds = false;
+      if (molecule.formula === 'H2O') {
+        // Water: O should have 2 bonds, each H should have 1 bond
+        const oxygenAtom = currentAtoms.find(a => a.symbol === 'O');
+        const hydrogenAtoms = currentAtoms.filter(a => a.symbol === 'H');
+        
+        if (oxygenAtom && hydrogenAtoms.length === 2) {
+          const oxygenBonds = currentBonds.filter(b => 
+            b.atom1Id === oxygenAtom.id || b.atom2Id === oxygenAtom.id
+          );
+          hasCorrectBonds = oxygenBonds.length === 2;
+        }
+      } else {
+        // General rule: number of bonds should be atoms - 1 for simple molecules
+        const requiredBonds = molecule.atoms.length - 1;
+        hasCorrectBonds = currentBonds.length === requiredBonds;
+      }
 
       if (hasExactAtoms && hasCorrectBonds && !builtMolecules.includes(molecule.formula)) {
         setBuiltMolecules(prev => [...prev, molecule.formula]);
-        setScore(prev => prev + 50);
-        showMessage(`🎉 Molecule completed: ${molecule.name} (${molecule.formula})! +50 points`, 4000);
+        setScore(prev => prev + 100);
+        showMessage(`🎉 Molecule completed: ${molecule.name} (${molecule.formula})! +100 points`, 4000);
         
         // Auto-advance challenge mode
         if (gameMode === 'challenge' && currentChallenge < MOLECULES.length - 1) {
@@ -144,72 +328,29 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         }
       }
     });
-  }, [builtMolecules, gameMode, currentChallenge, showMessage]);
+  }, [builtMolecules, gameMode, currentChallenge, showMessage, bonds]);
 
-  // Handle atom drag end - check for bonding
+  // Handle atom drag end (only for positioning, no auto-bonding)
   const handleAtomDragEnd = (atomId: string, newPosition: [number, number, number]) => {
     setDragging(null);
     
-    // Update atom position
-    setPlacedAtoms(prev => {
-      const updatedAtoms = prev.map(atom => 
+    // Just update atom position
+    setPlacedAtoms(prev => 
+      prev.map(atom => 
         atom.id === atomId ? { ...atom, position: newPosition } : atom
-      );
+      )
+    );
+  };
 
-      // Check for potential bonds with nearby atoms
-      const draggedAtom = updatedAtoms.find(a => a.id === atomId);
-      if (!draggedAtom) return updatedAtoms;
-
-      let newBonds: MolecularBond[] = [];
-      let bondsFormed = false;
-
-      updatedAtoms.forEach(otherAtom => {
-        if (otherAtom.id === atomId) return;
-
-        const distance = Math.sqrt(
-          Math.pow(newPosition[0] - otherAtom.position[0], 2) +
-          Math.pow(newPosition[1] - otherAtom.position[1], 2) +
-          Math.pow(newPosition[2] - otherAtom.position[2], 2)
-        );
-
-        // If atoms are close enough and can bond
-        if (distance < 1.5 && canBond(draggedAtom.atomData, otherAtom.atomData)) {
-          // Check if bond already exists
-          const bondExists = bonds.some(bond => 
-            (bond.atom1Id === atomId && bond.atom2Id === otherAtom.id) ||
-            (bond.atom1Id === otherAtom.id && bond.atom2Id === atomId)
-          );
-
-          if (!bondExists) {
-            const bondType = getBondType(draggedAtom.atomData, otherAtom.atomData);
-            const newBond: MolecularBond = {
-              id: `bond-${Date.now()}-${Math.random()}`,
-              atom1Id: atomId,
-              atom2Id: otherAtom.id,
-              type: bondType,
-              strength: 1
-            };
-
-            newBonds.push(newBond);
-            bondsFormed = true;
-            setScore(prev => prev + (bondType === 'ionic' ? 15 : 10));
-            showMessage(`${bondType.toUpperCase()} bond formed! ${draggedAtom.symbol}-${otherAtom.symbol} (+${bondType === 'ionic' ? 15 : 10} points)`);
-          }
-        }
-      });
-
-      // Update bonds if new ones were formed
-      if (bondsFormed) {
-        setBonds(prev => {
-          const updatedBonds = [...prev, ...newBonds];
-          // Check for molecule completion with updated state
-          setTimeout(() => checkMoleculeCompletion(updatedAtoms, updatedBonds), 100);
-          return updatedBonds;
-        });
-      }
-
-      return updatedAtoms;
-    });
+  // Toggle bonding mode
+  const toggleBondingMode = () => {
+    setBondingMode(!bondingMode);
+    setFirstAtomForBond(null);
+    showMessage(
+      !bondingMode 
+        ? 'Bond Mode ON: Click two atoms to create a bond between them.'
+        : 'Bond Mode OFF: You can now drag atoms to move them.'
+    );
   };
 
   // Reset the scene
@@ -220,6 +361,8 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setScore(0);
     setSelectedAtomId(null);
     setDragging(null);
+    setBondingMode(false);
+    setFirstAtomForBond(null);
     if (messageTimeoutRef.current) {
       clearTimeout(messageTimeoutRef.current);
     }
@@ -232,7 +375,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setCurrentChallenge(0);
     handleReset(); // Reset when changing modes
     showMessage(
-      mode === 'tutorial' ? 'Tutorial mode: Explore and learn about molecular bonding!' :
+      mode === 'tutorial' ? 'Tutorial mode: Learn to create bonds manually!' :
       mode === 'practice' ? 'Practice mode: Build any molecules you want!' :
       `Challenge mode: Build ${MOLECULES[0]?.formula} to start!`
     );
@@ -254,10 +397,14 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   // Add some starter atoms in tutorial mode
   useEffect(() => {
     if (gameMode === 'tutorial' && placedAtoms.length === 0) {
-      // Add a couple of hydrogen atoms to get started
+      // Add H2O atoms for tutorial
       setTimeout(() => {
         addAtom('H');
-        setTimeout(() => addAtom('H'), 500);
+        setTimeout(() => {
+          addAtom('H');
+          setTimeout(() => addAtom('O'), 500);
+        }, 500);
+        showMessage('Try building Water (H2O)! Use Bond Mode to connect the atoms.', 5000);
       }, 1000);
     }
   }, [gameMode, placedAtoms.length]);
@@ -283,7 +430,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         <OrbitControls
           enablePan={true}
           enableZoom={true}
-          enableRotate={true}
+          enableRotate={!bondingMode} // Disable rotation in bonding mode for easier clicking
           maxDistance={15}
           minDistance={3}
         />
@@ -294,12 +441,15 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
             key={atom.id}
             atomData={atom.atomData}
             position={atom.position}
-            selected={selectedAtomId === atom.id}
+            selected={selectedAtomId === atom.id || firstAtomForBond === atom.id}
             dragging={dragging === atom.id}
-            onSelect={() => setSelectedAtomId(atom.id)}
+            onSelect={() => handleAtomClick(atom.id)}
             onDragStart={() => handleAtomDragStart(atom.id)}
             onDragEnd={(newPosition) => handleAtomDragEnd(atom.id, newPosition)}
             showElectrons={showElectrons}
+            // Visual indicators for bonding
+            highlight={bondingMode && firstAtomForBond === atom.id}
+            availableBonds={atom.availableBonds}
           />
         ))}
 
@@ -318,6 +468,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
               type={bond.type}
               strength={bond.strength}
               animated={true}
+              onRemove={() => removeBond(bond.id)}
             />
           );
         })}
@@ -333,13 +484,17 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         score={score}
         gameMode={gameMode}
         showElectrons={showElectrons}
+        bondingMode={bondingMode}
+        firstAtomForBond={firstAtomForBond}
         onAtomSelect={handleAtomSelect}
         onToggleElectrons={() => setShowElectrons(!showElectrons)}
+        onToggleBondingMode={toggleBondingMode}
         onModeChange={handleModeChange}
         onReset={handleReset}
         onNextChallenge={handleNextChallenge}
         builtMolecules={builtMolecules}
         message={message}
+        placedAtoms={placedAtoms}
       />
     </div>
   );
