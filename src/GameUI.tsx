@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ATOMS, MOLECULES, AtomData } from './atomData';
 
 interface GameUIProps {
@@ -30,6 +30,7 @@ export const GameUI: React.FC<GameUIProps> = ({
   builtMolecules,
   message
 }) => {
+  const [showInstructions, setShowInstructions] = useState(true);
   const currentTarget = MOLECULES[currentChallenge];
 
   return (
@@ -194,6 +195,21 @@ export const GameUI: React.FC<GameUIProps> = ({
           </button>
           
           <button
+            onClick={() => setShowInstructions(!showInstructions)}
+            style={{
+              padding: '10px 15px',
+              border: 'none',
+              borderRadius: '5px',
+              background: showInstructions ? '#ffff00' : '#666',
+              color: showInstructions ? 'black' : 'white',
+              cursor: 'pointer',
+              fontSize: '12px'
+            }}
+          >
+            {showInstructions ? '📖 Hide Instructions' : '❓ Show Instructions'}
+          </button>
+          
+          <button
             onClick={onReset}
             style={{
               padding: '10px 15px',
@@ -315,34 +331,63 @@ export const GameUI: React.FC<GameUIProps> = ({
         </div>
       )}
 
-      {/* Instructions */}
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        right: '20px',
-        transform: 'translateY(-50%)',
-        pointerEvents: 'auto'
-      }}>
+      {/* Instructions - Now toggleable */}
+      {showInstructions && (
         <div style={{
-          background: 'rgba(0, 0, 0, 0.7)',
-          padding: '15px',
-          borderRadius: '10px',
-          maxWidth: '250px',
-          fontSize: '12px'
+          position: 'absolute',
+          top: '50%',
+          right: '20px',
+          transform: 'translateY(-50%)',
+          pointerEvents: 'auto'
         }}>
-          <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#ffff00' }}>
-            How to Play
-          </h3>
-          <ul style={{ margin: 0, paddingLeft: '15px' }}>
-            <li>Select atoms from the periodic table</li>
-            <li>Drag atoms in 3D space to position them</li>
-            <li>Bring compatible atoms close together to bond</li>
-            <li>Watch for visual feedback (color changes, effects)</li>
-            <li>Complete challenges or explore freely</li>
-            <li>Toggle electron visualization to learn more</li>
-          </ul>
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.8)',
+            padding: '15px',
+            borderRadius: '10px',
+            maxWidth: '250px',
+            fontSize: '12px',
+            border: '2px solid #ffff00'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '10px'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '14px', color: '#ffff00' }}>
+                How to Play
+              </h3>
+              <button
+                onClick={() => setShowInstructions(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#ffff00',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  padding: '0',
+                  width: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title="Close instructions"
+              >
+                ✕
+              </button>
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '15px' }}>
+              <li>Select atoms from the periodic table</li>
+              <li>Drag atoms in 3D space to position them</li>
+              <li>Bring compatible atoms close together to bond</li>
+              <li>Watch for visual feedback (color changes, effects)</li>
+              <li>Complete challenges or explore freely</li>
+              <li>Toggle electron visualization to learn more</li>
+            </ul>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
