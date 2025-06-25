@@ -17,9 +17,11 @@ interface GameUIProps {
   showElectrons: boolean;
   bondingMode: boolean;
   firstAtomForBond: string | null;
+  keyboardControlsEnabled: boolean;
   onAtomSelect: (atomSymbol: string) => void;
   onToggleElectrons: () => void;
   onToggleBondingMode: () => void;
+  onToggleKeyboardControls: () => void;
   onModeChange: (mode: 'tutorial' | 'practice' | 'challenge') => void;
   onReset: () => void;
   onNextChallenge: () => void;
@@ -36,9 +38,11 @@ export const GameUI: React.FC<GameUIProps> = ({
   showElectrons,
   bondingMode,
   firstAtomForBond,
+  keyboardControlsEnabled,
   onAtomSelect,
   onToggleElectrons,
   onToggleBondingMode,
+  onToggleKeyboardControls,
   onModeChange,
   onReset,
   onNextChallenge,
@@ -76,7 +80,7 @@ export const GameUI: React.FC<GameUIProps> = ({
             🧪 Molecular Bonding Lab
           </h1>
           <p style={{ margin: '5px 0', fontSize: '14px', opacity: 0.8 }}>
-            Use Bond Mode to manually create bonds between atoms!
+            Left click = move atoms, Right click = rotate camera, WASD = move camera
           </p>
         </div>
         
@@ -115,6 +119,27 @@ export const GameUI: React.FC<GameUIProps> = ({
           }}>
             🔗 BOND MODE ACTIVE 
             {firstAtomForBond ? ' - Click second atom to bond' : ' - Click first atom'}
+          </div>
+        </div>
+      )}
+
+      {/* Keyboard Controls Status */}
+      {keyboardControlsEnabled && (
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          right: '280px',
+          pointerEvents: 'auto'
+        }}>
+          <div style={{
+            background: 'rgba(0, 255, 0, 0.8)',
+            color: 'black',
+            padding: '5px 10px',
+            borderRadius: '15px',
+            fontSize: '12px',
+            fontWeight: 'bold'
+          }}>
+            ⌨️ WASD Controls ON
           </div>
         </div>
       )}
@@ -233,6 +258,21 @@ export const GameUI: React.FC<GameUIProps> = ({
             }}
           >
             {bondingMode ? '🔗 Exit Bond Mode' : '🔗 Bond Mode'}
+          </button>
+
+          <button
+            onClick={onToggleKeyboardControls}
+            style={{
+              padding: '10px 15px',
+              border: 'none',
+              borderRadius: '5px',
+              background: keyboardControlsEnabled ? '#00ff00' : '#666',
+              color: keyboardControlsEnabled ? 'black' : 'white',
+              cursor: 'pointer',
+              fontSize: '12px'
+            }}
+          >
+            {keyboardControlsEnabled ? '⌨️ Keyboard ON' : '⌨️ Keyboard OFF'}
           </button>
 
           <button
@@ -434,7 +474,7 @@ export const GameUI: React.FC<GameUIProps> = ({
             background: 'rgba(0, 0, 0, 0.8)',
             padding: '15px',
             borderRadius: '10px',
-            maxWidth: '280px',
+            maxWidth: '300px',
             fontSize: '12px',
             border: '2px solid #ffff00'
           }}>
@@ -467,14 +507,26 @@ export const GameUI: React.FC<GameUIProps> = ({
                 ✕
               </button>
             </div>
-            <ul style={{ margin: 0, paddingLeft: '15px' }}>
-              <li><strong>Add Atoms:</strong> Click elements in the periodic table</li>
-              <li><strong>Move Atoms:</strong> Drag atoms in 3D space (when Bond Mode is OFF)</li>
-              <li><strong>Create Bonds:</strong> Turn on Bond Mode, then click two atoms</li>
-              <li><strong>Build Molecules:</strong> Connect atoms according to their bonding capacity</li>
-              <li><strong>H2O Example:</strong> Add H + H + O, then bond each H to O</li>
-              <li><strong>Bond Limits:</strong> H=1 bond, O=2 bonds, N=3, C=4</li>
-            </ul>
+            <div style={{ marginBottom: '10px' }}>
+              <h4 style={{ margin: '0 0 5px 0', color: '#00ffff', fontSize: '12px' }}>Camera Controls:</h4>
+              <ul style={{ margin: 0, paddingLeft: '15px' }}>
+                <li><strong>Right Click + Drag:</strong> Rotate camera</li>
+                <li><strong>WASD Keys:</strong> Move camera position</li>
+                <li><strong>Q/E Keys:</strong> Move camera up/down</li>
+                <li><strong>IJKL Keys:</strong> Rotate camera view</li>
+                <li><strong>Mouse Wheel:</strong> Zoom in/out</li>
+              </ul>
+            </div>
+            <div>
+              <h4 style={{ margin: '0 0 5px 0', color: '#00ffff', fontSize: '12px' }}>Atom Controls:</h4>
+              <ul style={{ margin: 0, paddingLeft: '15px' }}>
+                <li><strong>Add Atoms:</strong> Click elements in periodic table</li>
+                <li><strong>Move Atoms:</strong> Left click + drag atoms</li>
+                <li><strong>Create Bonds:</strong> Enable Bond Mode, click two atoms</li>
+                <li><strong>Build Molecules:</strong> Follow bonding capacity limits</li>
+                <li><strong>H2O Example:</strong> H + H + O, bond each H to O</li>
+              </ul>
+            </div>
           </div>
         </div>
       )}
