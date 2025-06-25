@@ -48,6 +48,10 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   const [bondingMode, setBondingMode] = useState(false);
   const [firstAtomForBond, setFirstAtomForBond] = useState<string | null>(null);
 
+  // Camera control state
+  const [cameraControlsEnabled, setCameraControlsEnabled] = useState(true);
+  const orbitControlsRef = useRef<any>(null);
+
   const atomIdCounter = useRef(0);
   const messageTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -128,15 +132,26 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   };
 
   // Handle atom drag start
-  const handleAtomDragStart = (atomId: string) => {
+  const handleAtomDragStart = (atomId: string, button: number) => {
+    // Only handle left mouse button (button 0) for dragging
+    if (button !== 0) return;
+    
     if (!bondingMode) {
       setDragging(atomId);
       setSelectedAtomId(atomId);
+      // Disable camera controls when dragging atoms
+      setCameraControlsEnabled(false);
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.enabled = false;
+      }
     }
   };
 
-  // Handle atom click for bonding
-  const handleAtomClick = (atomId: string) => {
+  // Handle atom click for bonding or selection
+  const handleAtomClick = (atomId: string, button: number) => {
+    // Right click should not interact with atoms - let camera handle it
+    if (button === 2) return;
+
     if (!bondingMode) {
       setSelectedAtomId(atomId);
       return;
@@ -334,6 +349,12 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   const handleAtomDragEnd = (atomId: string, newPosition: [number, number, number]) => {
     setDragging(null);
     
+    // Re-enable camera controls
+    setCameraControlsEnabled(true);
+    if (orbitControlsRef.current) {
+      orbitControlsRef.current.enabled = true;
+    }
+    
     // Just update atom position
     setPlacedAtoms(prev => 
       prev.map(atom => 
@@ -353,6 +374,17 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     );
   };
 
+  // Handle mouse events on canvas to control camera
+  const handleCanvasPointerDown = (event: any) => {
+    // Right mouse button - enable camera controls
+    if (event.button === 2) {
+      setCameraControlsEnabled(true);
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.enabled = true;
+      }
+    }
+  };
+
   // Reset the scene
   const handleReset = () => {
     setPlacedAtoms([]);
@@ -363,6 +395,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setDragging(null);
     setBondingMode(false);
     setFirstAtomForBond(null);
+    setCameraControlsEnabled(true);
     if (messageTimeoutRef.current) {
       clearTimeout(messageTimeoutRef.current);
     }
@@ -404,7 +437,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
           addAtom('H');
           setTimeout(() => addAtom('O'), 500);
         }, 500);
-        showMessage('Try building Water (H2O)! Use Bond Mode to connect the atoms.', 5000);
+        showMessage('Try building Water (H2O)! Left click = move atoms, Right click = move camera, Bond Mode = connect atoms.', 7000);
       }, 1000);
     }
   }, [gameMode, placedAtoms.length]);
@@ -415,6 +448,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
       <Canvas
         camera={{ position: [0, 0, 8], fov: 60 }}
         style={{ background: 'linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)' }}
+        onPointerDown={handleCanvasPointerDown}
       >
         {/* Lighting */}
         <ambientLight intensity={0.6} />
@@ -428,11 +462,21 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         
         {/* Controls */}
         <OrbitControls
+          ref={orbitControlsRef}
           enablePan={true}
           enableZoom={true}
-          enableRotate={!bondingMode} // Disable rotation in bonding mode for easier clicking
+          enableRotate={cameraControlsEnabled}
           maxDistance={15}
           minDistance={3}
+          mouseButtons={{
+            LEFT: null, // Disable left click for camera
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.ROTATE // Only right click rotates camera
+          }}
+          touches={{
+            ONE: null, // Disable single touch for camera on mobile
+            TWO: THREE.TOUCH.DOLLY_PAN
+          }}
         />
 
         {/* Atoms */}
@@ -443,11 +487,10 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
             position={atom.position}
             selected={selectedAtomId === atom.id || firstAtomForBond === atom.id}
             dragging={dragging === atom.id}
-            onSelect={() => handleAtomClick(atom.id)}
-            onDragStart={() => handleAtomDragStart(atom.id)}
+            onSelect={(button) => handleAtomClick(atom.id, button)}
+            onDragStart={(button) => handleAtomDragStart(atom.id, button)}
             onDragEnd={(newPosition) => handleAtomDragEnd(atom.id, newPosition)}
             showElectrons={showElectrons}
-            // Visual indicators for bonding
             highlight={bondingMode && firstAtomForBond === atom.id}
             availableBonds={atom.availableBonds}
           />
