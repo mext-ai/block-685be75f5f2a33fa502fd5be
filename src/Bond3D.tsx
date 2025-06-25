@@ -19,6 +19,7 @@ export const Bond3D: React.FC<Bond3DProps> = ({
   animated = true
 }) => {
   const bondRef = useRef<THREE.Group>(null);
+  const electricFieldRef = useRef<THREE.Group>(null);
   
   // Calculate bond properties
   const startVec = new THREE.Vector3(...start);
@@ -31,25 +32,34 @@ export const Bond3D: React.FC<Bond3DProps> = ({
   const up = new THREE.Vector3(0, 1, 0);
   const quaternion = new THREE.Quaternion().setFromUnitVectors(up, direction.normalize());
 
-  // Animation for bond pulsing
+  // Animation for bond effects
   useFrame((state) => {
     if (bondRef.current && animated) {
-      const pulse = Math.sin(state.clock.getElapsedTime() * 2) * 0.1 + 1;
-      bondRef.current.scale.setScalar(pulse);
+      // Gentle pulsing for covalent bonds
+      if (type === 'covalent') {
+        const pulse = Math.sin(state.clock.getElapsedTime() * 2) * 0.05 + 1;
+        bondRef.current.scale.setScalar(pulse);
+      }
+    }
+    
+    // Electric field animation for ionic bonds
+    if (electricFieldRef.current && type === 'ionic' && animated) {
+      electricFieldRef.current.rotation.z = state.clock.getElapsedTime() * 0.5;
     }
   });
 
   const bondColor = type === 'ionic' ? '#ff6b6b' : '#4ecdc4';
   const bondRadius = type === 'ionic' ? 0.08 : 0.06;
-  const opacity = type === 'ionic' ? 0.7 : 0.9;
+  const opacity = type === 'ionic' ? 0.8 : 0.9;
 
   if (type === 'ionic') {
-    // Ionic bond - dotted line effect
-    const segments = 8;
+    // Ionic bond - dotted line effect with electric field
+    const segments = 10;
     const segmentLength = length / segments;
     
     return (
       <group ref={bondRef}>
+        {/* Dotted bond line */}
         {Array.from({ length: segments }).map((_, index) => {
           if (index % 2 === 0) return null; // Skip every other segment for dotted effect
           
@@ -70,7 +80,7 @@ export const Bond3D: React.FC<Bond3DProps> = ({
                 <meshStandardMaterial
                   color={bondColor}
                   emissive={bondColor}
-                  emissiveIntensity={0.3}
+                  emissiveIntensity={0.4}
                   transparent
                   opacity={opacity}
                 />
@@ -80,10 +90,10 @@ export const Bond3D: React.FC<Bond3DProps> = ({
         })}
         
         {/* Electric field visualization */}
-        <group position={midpoint.toArray()}>
-          {Array.from({ length: 6 }).map((_, index) => {
-            const angle = (index / 6) * Math.PI * 2;
-            const radius = 0.3;
+        <group ref={electricFieldRef} position={midpoint.toArray()}>
+          {Array.from({ length: 8 }).map((_, index) => {
+            const angle = (index / 8) * Math.PI * 2;
+            const radius = 0.4;
             const x = Math.cos(angle) * radius;
             const z = Math.sin(angle) * radius;
             
@@ -93,11 +103,35 @@ export const Bond3D: React.FC<Bond3DProps> = ({
                 <meshStandardMaterial
                   color="#ffff00"
                   emissive="#ffff00"
-                  emissiveIntensity={0.5}
+                  emissiveIntensity={0.6}
                 />
               </mesh>
             );
           })}
+          
+          {/* Central charge indicator */}
+          <mesh>
+            <sphereGeometry args={[0.08, 16, 16]} />
+            <meshStandardMaterial
+              color="#ff0000"
+              emissive="#ff0000"
+              emissiveIntensity={0.3}
+              transparent
+              opacity={0.6}
+            />
+          </mesh>
+        </group>
+        
+        {/* Bond formation effect */}
+        <group position={midpoint.toArray()}>
+          <mesh>
+            <ringGeometry args={[0.2, 0.3, 16]} />
+            <meshBasicMaterial
+              color="#ffff00"
+              transparent
+              opacity={0.4}
+            />
+          </mesh>
         </group>
       </group>
     );
@@ -122,8 +156,8 @@ export const Bond3D: React.FC<Bond3DProps> = ({
               <meshStandardMaterial
                 color={bondColor}
                 emissive={bondColor}
-                emissiveIntensity={0.2}
-                metalness={0.3}
+                emissiveIntensity={0.3}
+                metalness={0.2}
                 roughness={0.4}
                 transparent
                 opacity={opacity}
@@ -137,23 +171,36 @@ export const Bond3D: React.FC<Bond3DProps> = ({
       {animated && (
         <group>
           {Array.from({ length: 2 }).map((_, index) => {
-            const t = (index / 2) * Math.PI * 2;
+            const angle = (index / 2) * Math.PI * 2;
+            const radius = 0.15;
+            const x = Math.cos(angle + Date.now() * 0.001) * radius;
+            const z = Math.sin(angle + Date.now() * 0.001) * radius;
             
             return (
-              <group key={index}>
-                <mesh>
-                  <sphereGeometry args={[0.03, 8, 8]} />
-                  <meshStandardMaterial
-                    color="#00ffff"
-                    emissive="#00ffff"
-                    emissiveIntensity={0.4}
-                  />
-                </mesh>
-              </group>
+              <mesh key={index} position={[x, 0, z]}>
+                <sphereGeometry args={[0.03, 8, 8]} />
+                <meshStandardMaterial
+                  color="#00ffff"
+                  emissive="#00ffff"
+                  emissiveIntensity={0.5}
+                />
+              </mesh>
             );
           })}
         </group>
       )}
+      
+      {/* Bond strength indicator */}
+      <group>
+        <mesh>
+          <ringGeometry args={[0.1, 0.15, 16]} />
+          <meshBasicMaterial
+            color="#00ff00"
+            transparent
+            opacity={0.3}
+          />
+        </mesh>
+      </group>
     </group>
   );
 };
