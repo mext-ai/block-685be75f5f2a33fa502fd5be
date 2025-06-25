@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { Atom3D } from './Atom3D';
@@ -28,6 +28,84 @@ interface MolecularBond {
   strength: number;
 }
 
+// Keyboard camera controls component
+const KeyboardCameraControls: React.FC<{ enabled: boolean }> = ({ enabled }) => {
+  const { camera } = useThree();
+  const keysPressed = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      keysPressed.current.add(event.code.toLowerCase());
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      keysPressed.current.delete(event.code.toLowerCase());
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [enabled]);
+
+  useFrame(() => {
+    if (!enabled) return;
+
+    const moveSpeed = 0.1;
+    const rotateSpeed = 0.02;
+
+    // Movement controls (WASD + Arrow Keys)
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    const up = new THREE.Vector3(0, 1, 0);
+
+    // Forward/Backward
+    if (keysPressed.current.has('keyw') || keysPressed.current.has('arrowup')) {
+      camera.position.add(forward.multiplyScalar(moveSpeed));
+    }
+    if (keysPressed.current.has('keys') || keysPressed.current.has('arrowdown')) {
+      camera.position.add(forward.multiplyScalar(-moveSpeed));
+    }
+
+    // Left/Right
+    if (keysPressed.current.has('keya') || keysPressed.current.has('arrowleft')) {
+      camera.position.add(right.multiplyScalar(-moveSpeed));
+    }
+    if (keysPressed.current.has('keyd') || keysPressed.current.has('arrowright')) {
+      camera.position.add(right.multiplyScalar(moveSpeed));
+    }
+
+    // Up/Down
+    if (keysPressed.current.has('keyq') || keysPressed.current.has('space')) {
+      camera.position.add(up.multiplyScalar(moveSpeed));
+    }
+    if (keysPressed.current.has('keye') || keysPressed.current.has('shiftleft')) {
+      camera.position.add(up.multiplyScalar(-moveSpeed));
+    }
+
+    // Rotation controls
+    if (keysPressed.current.has('keyi')) {
+      camera.rotation.x -= rotateSpeed;
+    }
+    if (keysPressed.current.has('keyk')) {
+      camera.rotation.x += rotateSpeed;
+    }
+    if (keysPressed.current.has('keyj')) {
+      camera.rotation.y += rotateSpeed;
+    }
+    if (keysPressed.current.has('keyl')) {
+      camera.rotation.y -= rotateSpeed;
+    }
+  });
+
+  return null;
+};
+
 const Block: React.FC<BlockProps> = ({ title, description }) => {
   // Game state
   const [gameMode, setGameMode] = useState<'tutorial' | 'practice' | 'challenge'>('tutorial');
@@ -50,6 +128,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
 
   // Camera control state
   const [cameraControlsEnabled, setCameraControlsEnabled] = useState(true);
+  const [keyboardControlsEnabled, setKeyboardControlsEnabled] = useState(true);
   const orbitControlsRef = useRef<any>(null);
 
   const atomIdCounter = useRef(0);
@@ -141,6 +220,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
       setSelectedAtomId(atomId);
       // Disable camera controls when dragging atoms
       setCameraControlsEnabled(false);
+      setKeyboardControlsEnabled(false);
       if (orbitControlsRef.current) {
         orbitControlsRef.current.enabled = false;
       }
@@ -351,6 +431,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     
     // Re-enable camera controls
     setCameraControlsEnabled(true);
+    setKeyboardControlsEnabled(true);
     if (orbitControlsRef.current) {
       orbitControlsRef.current.enabled = true;
     }
@@ -371,6 +452,16 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
       !bondingMode 
         ? 'Bond Mode ON: Click two atoms to create a bond between them.'
         : 'Bond Mode OFF: You can now drag atoms to move them.'
+    );
+  };
+
+  // Toggle keyboard controls
+  const toggleKeyboardControls = () => {
+    setKeyboardControlsEnabled(!keyboardControlsEnabled);
+    showMessage(
+      !keyboardControlsEnabled 
+        ? 'Keyboard controls ON: Use WASD/Arrow keys to move camera'
+        : 'Keyboard controls OFF: Only mouse controls camera'
     );
   };
 
@@ -396,6 +487,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setBondingMode(false);
     setFirstAtomForBond(null);
     setCameraControlsEnabled(true);
+    setKeyboardControlsEnabled(true);
     if (messageTimeoutRef.current) {
       clearTimeout(messageTimeoutRef.current);
     }
@@ -437,7 +529,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
           addAtom('H');
           setTimeout(() => addAtom('O'), 500);
         }, 500);
-        showMessage('Try building Water (H2O)! Left click = move atoms, Right click = move camera, Bond Mode = connect atoms.', 7000);
+        showMessage('Try building Water (H2O)! Left click = move atoms, Right click = move camera, WASD = camera movement, Bond Mode = connect atoms.', 8000);
       }, 1000);
     }
   }, [gameMode, placedAtoms.length]);
@@ -459,6 +551,9 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         {/* Environment */}
         <Stars radius={300} depth={60} count={1000} factor={7} />
         <Environment preset="night" />
+        
+        {/* Keyboard Camera Controls */}
+        <KeyboardCameraControls enabled={keyboardControlsEnabled} />
         
         {/* Controls */}
         <OrbitControls
@@ -529,9 +624,11 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         showElectrons={showElectrons}
         bondingMode={bondingMode}
         firstAtomForBond={firstAtomForBond}
+        keyboardControlsEnabled={keyboardControlsEnabled}
         onAtomSelect={handleAtomSelect}
         onToggleElectrons={() => setShowElectrons(!showElectrons)}
         onToggleBondingMode={toggleBondingMode}
+        onToggleKeyboardControls={toggleKeyboardControls}
         onModeChange={handleModeChange}
         onReset={handleReset}
         onNextChallenge={handleNextChallenge}
