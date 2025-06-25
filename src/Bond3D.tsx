@@ -9,6 +9,7 @@ interface Bond3DProps {
   type: 'ionic' | 'covalent';
   strength: number;
   animated?: boolean;
+  onRemove?: () => void;
 }
 
 export const Bond3D: React.FC<Bond3DProps> = ({
@@ -16,7 +17,8 @@ export const Bond3D: React.FC<Bond3DProps> = ({
   end,
   type,
   strength,
-  animated = true
+  animated = true,
+  onRemove
 }) => {
   const bondRef = useRef<THREE.Group>(null);
   const electricFieldRef = useRef<THREE.Group>(null);
@@ -30,7 +32,10 @@ export const Bond3D: React.FC<Bond3DProps> = ({
   
   // Calculate rotation to align cylinder with bond direction
   const up = new THREE.Vector3(0, 1, 0);
-  const quaternion = new THREE.Quaternion().setFromUnitVectors(up, direction.normalize());
+  const normalizedDirection = direction.clone().normalize();
+  
+  // Create a quaternion to rotate from up vector to bond direction
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(up, normalizedDirection);
 
   // Animation for bond effects
   useFrame((state) => {
@@ -38,7 +43,7 @@ export const Bond3D: React.FC<Bond3DProps> = ({
       // Gentle pulsing for covalent bonds
       if (type === 'covalent') {
         const pulse = Math.sin(state.clock.getElapsedTime() * 2) * 0.05 + 1;
-        bondRef.current.scale.setScalar(pulse);
+        bondRef.current.scale.set(pulse, 1, pulse); // Only scale x and z, not length
       }
     }
     
@@ -52,6 +57,14 @@ export const Bond3D: React.FC<Bond3DProps> = ({
   const bondRadius = type === 'ionic' ? 0.08 : 0.06;
   const opacity = type === 'ionic' ? 0.8 : 0.9;
 
+  // Handle click to remove bond (if onRemove is provided)
+  const handleClick = (event: any) => {
+    event.stopPropagation();
+    if (onRemove) {
+      onRemove();
+    }
+  };
+
   if (type === 'ionic') {
     // Ionic bond - dotted line effect with electric field
     const segments = 10;
@@ -63,19 +76,15 @@ export const Bond3D: React.FC<Bond3DProps> = ({
         {Array.from({ length: segments }).map((_, index) => {
           if (index % 2 === 0) return null; // Skip every other segment for dotted effect
           
-          const segmentStart = startVec.clone().add(
-            direction.clone().normalize().multiplyScalar(index * segmentLength)
-          );
-          const segmentEnd = startVec.clone().add(
-            direction.clone().normalize().multiplyScalar((index + 1) * segmentLength)
-          );
-          const segmentMidpoint = segmentStart.clone().add(segmentEnd).multiplyScalar(0.5);
+          const t = (index + 0.5) / segments; // Center of segment
+          const segmentCenter = startVec.clone().lerp(endVec, t);
           
           return (
-            <group key={index} position={segmentMidpoint.toArray()}>
+            <group key={index} position={segmentCenter.toArray()}>
               <Cylinder
                 args={[bondRadius, bondRadius, segmentLength * 0.8, 8]}
-                rotation={[quaternion.x, quaternion.y, quaternion.z]}
+                quaternion={quaternion}
+                onClick={handleClick}
               >
                 <meshStandardMaterial
                   color={bondColor}
@@ -144,14 +153,22 @@ export const Bond3D: React.FC<Bond3DProps> = ({
     <group ref={bondRef} position={midpoint.toArray()}>
       {Array.from({ length: bondCount }).map((_, index) => {
         const offset = bondCount > 1 ? (index - (bondCount - 1) / 2) * 0.15 : 0;
-        const perpendicular = new THREE.Vector3(0, 0, 1).cross(direction).normalize();
-        const offsetVector = perpendicular.multiplyScalar(offset);
+        
+        // Create perpendicular vector for multiple bond offset
+        const perpendicular = new THREE.Vector3();
+        if (Math.abs(normalizedDirection.y) < 0.9) {
+          perpendicular.set(0, 1, 0);
+        } else {
+          perpendicular.set(1, 0, 0);
+        }
+        perpendicular.cross(normalizedDirection).normalize().multiplyScalar(offset);
         
         return (
-          <group key={index} position={offsetVector.toArray()}>
+          <group key={index} position={perpendicular.toArray()}>
             <Cylinder
               args={[bondRadius, bondRadius, length, 8]}
-              rotation={[quaternion.x, quaternion.y, quaternion.z]}
+              quaternion={quaternion}
+              onClick={handleClick}
             >
               <meshStandardMaterial
                 color={bondColor}
@@ -171,10 +188,11 @@ export const Bond3D: React.FC<Bond3DProps> = ({
       {animated && (
         <group>
           {Array.from({ length: 2 }).map((_, index) => {
-            const angle = (index / 2) * Math.PI * 2;
+            const time = Date.now() * 0.001;
+            const angle = (index / 2) * Math.PI * 2 + time;
             const radius = 0.15;
-            const x = Math.cos(angle + Date.now() * 0.001) * radius;
-            const z = Math.sin(angle + Date.now() * 0.001) * radius;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
             
             return (
               <mesh key={index} position={[x, 0, z]}>
@@ -201,6 +219,22 @@ export const Bond3D: React.FC<Bond3DProps> = ({
           />
         </mesh>
       </group>
+
+      {/* Remove bond indicator (if removable) */}
+      {onRemove && (
+        <group position={[0, 0, 0]}>
+          <mesh onClick={handleClick}>
+            <sphereGeometry args={[0.1, 8, 8]} />
+            <meshStandardMaterial
+              color="#ff0000"
+              emissive="#ff0000"
+              emissiveIntensity={0.5}
+              transparent
+              opacity={0.7}
+            />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 };
