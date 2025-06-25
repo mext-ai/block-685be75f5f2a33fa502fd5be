@@ -13,6 +13,8 @@ interface Atom3DProps {
   onDragStart: () => void;
   onDragEnd: (position: [number, number, number]) => void;
   showElectrons: boolean;
+  highlight?: boolean; // For bonding mode highlighting
+  availableBonds?: number; // Number of bonds this atom can still make
 }
 
 export const Atom3D: React.FC<Atom3DProps> = ({
@@ -23,7 +25,9 @@ export const Atom3D: React.FC<Atom3DProps> = ({
   onSelect,
   onDragStart,
   onDragEnd,
-  showElectrons
+  showElectrons,
+  highlight = false,
+  availableBonds = 0
 }) => {
   const atomRef = useRef<THREE.Group>(null);
   const electronRefs = useRef<THREE.Group[]>([]);
@@ -69,6 +73,14 @@ export const Atom3D: React.FC<Atom3DProps> = ({
         atomRef.current.position.copy(intersection.add(dragOffset));
       }
     }
+
+    // Highlight animation for bonding mode
+    if (highlight && atomRef.current) {
+      const pulse = Math.sin(state.clock.getElapsedTime() * 3) * 0.1 + 1;
+      atomRef.current.scale.setScalar(pulse);
+    } else if (atomRef.current && !selected && !hovered) {
+      atomRef.current.scale.setScalar(1);
+    }
   });
 
   const handlePointerDown = (event: THREE.Event) => {
@@ -101,6 +113,11 @@ export const Atom3D: React.FC<Atom3DProps> = ({
     gl.domElement.style.cursor = hovered ? 'grab' : 'default';
   };
 
+  const handleClick = (event: THREE.Event) => {
+    event.stopPropagation();
+    onSelect();
+  };
+
   const handlePointerEnter = () => {
     setHovered(true);
     gl.domElement.style.cursor = 'grab';
@@ -121,7 +138,17 @@ export const Atom3D: React.FC<Atom3DProps> = ({
   }, [position, isDragging]);
 
   const scale = selected ? 1.2 : hovered ? 1.1 : 1.0;
-  const emissiveIntensity = selected ? 0.3 : hovered ? 0.2 : 0.1;
+  const emissiveIntensity = 
+    highlight ? 0.5 : 
+    selected ? 0.3 : 
+    hovered ? 0.2 : 0.1;
+
+  // Color coding based on bonding availability
+  const getBondingColor = () => {
+    if (availableBonds === 0) return '#ff4444'; // Red if no bonds available
+    if (highlight) return '#ffff00'; // Yellow if highlighted for bonding
+    return atomData.color; // Default atom color
+  };
 
   return (
     <group
@@ -129,14 +156,15 @@ export const Atom3D: React.FC<Atom3DProps> = ({
       position={position}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
+      onClick={handleClick}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
     >
       {/* Main atom sphere */}
       <Sphere args={[atomData.radius, 32, 32]} scale={scale}>
         <meshStandardMaterial
-          color={atomData.color}
-          emissive={atomData.color}
+          color={getBondingColor()}
+          emissive={getBondingColor()}
           emissiveIntensity={emissiveIntensity}
           metalness={0.1}
           roughness={0.3}
@@ -154,10 +182,21 @@ export const Atom3D: React.FC<Atom3DProps> = ({
         {atomData.symbol}
       </Text>
 
-      {/* Valence electrons count */}
+      {/* Available bonds indicator */}
       <Text
         position={[0, -atomData.radius - 0.3, 0]}
         fontSize={0.15}
+        color={availableBonds > 0 ? "#00ff00" : "#ff4444"}
+        anchorX="center"
+        anchorY="middle"
+      >
+        Bonds: {availableBonds}
+      </Text>
+
+      {/* Valence electrons count */}
+      <Text
+        position={[0, -atomData.radius - 0.5, 0]}
+        fontSize={0.12}
         color="yellow"
         anchorX="center"
         anchorY="middle"
@@ -201,15 +240,39 @@ export const Atom3D: React.FC<Atom3DProps> = ({
 
       {/* Selection indicator */}
       {selected && (
-        <mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
           <ringGeometry args={[atomData.radius + 0.2, atomData.radius + 0.3, 32]} />
           <meshBasicMaterial color="#ffff00" transparent opacity={0.8} />
         </mesh>
       )}
 
+      {/* Highlight indicator for bonding mode */}
+      {highlight && (
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[atomData.radius + 0.35, atomData.radius + 0.45, 32]} />
+          <meshBasicMaterial color="#ffff00" transparent opacity={0.6} />
+        </mesh>
+      )}
+
+      {/* Bonding availability indicator */}
+      {availableBonds > 0 && (
+        <mesh rotation={[0, 0, 0]}>
+          <ringGeometry args={[atomData.radius + 0.5, atomData.radius + 0.55, 32]} />
+          <meshBasicMaterial color="#00ff00" transparent opacity={0.4} />
+        </mesh>
+      )}
+
+      {/* No bonds available indicator */}
+      {availableBonds === 0 && (
+        <mesh rotation={[0, 0, 0]}>
+          <ringGeometry args={[atomData.radius + 0.5, atomData.radius + 0.55, 32]} />
+          <meshBasicMaterial color="#ff4444" transparent opacity={0.4} />
+        </mesh>
+      )}
+
       {/* Bonding range indicator when dragging */}
       {dragging && (
-        <mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
           <ringGeometry args={[1.4, 1.5, 32]} />
           <meshBasicMaterial color="#00ff00" transparent opacity={0.3} />
         </mesh>
