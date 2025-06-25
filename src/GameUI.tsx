@@ -1,19 +1,31 @@
 import React, { useState } from 'react';
 import { ATOMS, MOLECULES, AtomData } from './atomData';
 
+interface PlacedAtom {
+  id: string;
+  symbol: string;
+  position: [number, number, number];
+  atomData: AtomData;
+  availableBonds: number;
+}
+
 interface GameUIProps {
   selectedAtom: string | null;
   currentChallenge: number;
   score: number;
   gameMode: 'tutorial' | 'practice' | 'challenge';
   showElectrons: boolean;
+  bondingMode: boolean;
+  firstAtomForBond: string | null;
   onAtomSelect: (atomSymbol: string) => void;
   onToggleElectrons: () => void;
+  onToggleBondingMode: () => void;
   onModeChange: (mode: 'tutorial' | 'practice' | 'challenge') => void;
   onReset: () => void;
   onNextChallenge: () => void;
   builtMolecules: string[];
   message: string;
+  placedAtoms: PlacedAtom[];
 }
 
 export const GameUI: React.FC<GameUIProps> = ({
@@ -22,13 +34,17 @@ export const GameUI: React.FC<GameUIProps> = ({
   score,
   gameMode,
   showElectrons,
+  bondingMode,
+  firstAtomForBond,
   onAtomSelect,
   onToggleElectrons,
+  onToggleBondingMode,
   onModeChange,
   onReset,
   onNextChallenge,
   builtMolecules,
-  message
+  message,
+  placedAtoms
 }) => {
   const [showInstructions, setShowInstructions] = useState(true);
   const currentTarget = MOLECULES[currentChallenge];
@@ -60,7 +76,7 @@ export const GameUI: React.FC<GameUIProps> = ({
             🧪 Molecular Bonding Lab
           </h1>
           <p style={{ margin: '5px 0', fontSize: '14px', opacity: 0.8 }}>
-            Build molecules by dragging atoms together!
+            Use Bond Mode to manually create bonds between atoms!
           </p>
         </div>
         
@@ -79,10 +95,34 @@ export const GameUI: React.FC<GameUIProps> = ({
         </div>
       </div>
 
+      {/* Bond Mode Status */}
+      {bondingMode && (
+        <div style={{
+          position: 'absolute',
+          top: '90px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          pointerEvents: 'auto'
+        }}>
+          <div style={{
+            background: 'rgba(255, 215, 0, 0.9)',
+            color: 'black',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            border: '2px solid #ffff00'
+          }}>
+            🔗 BOND MODE ACTIVE 
+            {firstAtomForBond ? ' - Click second atom to bond' : ' - Click first atom'}
+          </div>
+        </div>
+      )}
+
       {/* Game Mode Selector */}
       <div style={{
         position: 'absolute',
-        top: '100px',
+        top: '130px',
         left: '20px',
         pointerEvents: 'auto'
       }}>
@@ -180,6 +220,22 @@ export const GameUI: React.FC<GameUIProps> = ({
           gap: '10px'
         }}>
           <button
+            onClick={onToggleBondingMode}
+            style={{
+              padding: '12px 15px',
+              border: 'none',
+              borderRadius: '5px',
+              background: bondingMode ? '#ffff00' : '#4ecdc4',
+              color: bondingMode ? 'black' : 'white',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            {bondingMode ? '🔗 Exit Bond Mode' : '🔗 Bond Mode'}
+          </button>
+
+          <button
             onClick={onToggleElectrons}
             style={{
               padding: '10px 15px',
@@ -243,11 +299,45 @@ export const GameUI: React.FC<GameUIProps> = ({
         </div>
       </div>
 
+      {/* Atoms in Scene Display */}
+      {placedAtoms.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '260px',
+          left: '20px',
+          pointerEvents: 'auto'
+        }}>
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.8)',
+            padding: '15px',
+            borderRadius: '10px',
+            maxWidth: '220px'
+          }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#4ecdc4' }}>
+              Atoms in Scene
+            </h3>
+            <div style={{ fontSize: '12px' }}>
+              {placedAtoms.map((atom, index) => (
+                <div key={atom.id} style={{ 
+                  padding: '3px 0',
+                  color: atom.availableBonds > 0 ? '#00ff00' : '#ff9999',
+                  display: 'flex',
+                  justifyContent: 'space-between'
+                }}>
+                  <span>{atom.symbol} - {atom.atomData.name}</span>
+                  <span>Bonds: {atom.availableBonds}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Challenge Info */}
       {gameMode === 'challenge' && currentTarget && (
         <div style={{
           position: 'absolute',
-          top: '100px',
+          top: '130px',
           right: '20px',
           pointerEvents: 'auto'
         }}>
@@ -280,7 +370,7 @@ export const GameUI: React.FC<GameUIProps> = ({
       {builtMolecules.length > 0 && (
         <div style={{
           position: 'absolute',
-          top: '250px',
+          top: '420px',
           left: '20px',
           pointerEvents: 'auto'
         }}>
@@ -344,7 +434,7 @@ export const GameUI: React.FC<GameUIProps> = ({
             background: 'rgba(0, 0, 0, 0.8)',
             padding: '15px',
             borderRadius: '10px',
-            maxWidth: '250px',
+            maxWidth: '280px',
             fontSize: '12px',
             border: '2px solid #ffff00'
           }}>
@@ -378,12 +468,12 @@ export const GameUI: React.FC<GameUIProps> = ({
               </button>
             </div>
             <ul style={{ margin: 0, paddingLeft: '15px' }}>
-              <li>Select atoms from the periodic table</li>
-              <li>Drag atoms in 3D space to position them</li>
-              <li>Bring compatible atoms close together to bond</li>
-              <li>Watch for visual feedback (color changes, effects)</li>
-              <li>Complete challenges or explore freely</li>
-              <li>Toggle electron visualization to learn more</li>
+              <li><strong>Add Atoms:</strong> Click elements in the periodic table</li>
+              <li><strong>Move Atoms:</strong> Drag atoms in 3D space (when Bond Mode is OFF)</li>
+              <li><strong>Create Bonds:</strong> Turn on Bond Mode, then click two atoms</li>
+              <li><strong>Build Molecules:</strong> Connect atoms according to their bonding capacity</li>
+              <li><strong>H2O Example:</strong> Add H + H + O, then bond each H to O</li>
+              <li><strong>Bond Limits:</strong> H=1 bond, O=2 bonds, N=3, C=4</li>
             </ul>
           </div>
         </div>
