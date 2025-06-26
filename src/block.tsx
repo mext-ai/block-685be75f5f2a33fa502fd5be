@@ -232,30 +232,36 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     // Right click should not interact with atoms - let camera handle it
     if (button === 2) return;
 
+    // Prevent event from firing if we're currently dragging
+    if (dragging) return;
+
     if (!bondingMode) {
       setSelectedAtomId(atomId);
       return;
     }
 
-    // In bonding mode
-    if (!firstAtomForBond) {
-      // Select first atom for bonding
-      const atom = placedAtoms.find(a => a.id === atomId);
-      if (atom && atom.availableBonds > 0) {
-        setFirstAtomForBond(atomId);
-        showMessage(`Selected ${atom.symbol}. Now click another atom to create a bond.`);
+    // In bonding mode - use a callback to ensure we have the latest state
+    setFirstAtomForBond(currentFirst => {
+      if (!currentFirst) {
+        // Select first atom for bonding
+        const atom = placedAtoms.find(a => a.id === atomId);
+        if (atom && atom.availableBonds > 0) {
+          showMessage(`Selected ${atom.symbol}. Now click another atom to create a bond.`);
+          return atomId;
+        } else {
+          showMessage(`${atom?.symbol} cannot form more bonds!`);
+          return null;
+        }
+      } else if (currentFirst === atomId) {
+        // Clicked same atom, cancel
+        showMessage('Bond creation cancelled.');
+        return null;
       } else {
-        showMessage(`${atom?.symbol} cannot form more bonds!`);
+        // Try to create bond between first and second atom
+        createBond(currentFirst, atomId);
+        return null; // Reset after creating bond
       }
-    } else if (firstAtomForBond === atomId) {
-      // Clicked same atom, cancel
-      setFirstAtomForBond(null);
-      showMessage('Bond creation cancelled.');
-    } else {
-      // Try to create bond between first and second atom
-      createBond(firstAtomForBond, atomId);
-      setFirstAtomForBond(null);
-    }
+    });
   };
 
   // Create bond between two atoms
