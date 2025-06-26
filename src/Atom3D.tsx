@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Sphere } from '@react-three/drei';
 import * as THREE from 'three';
-import { AtomData } from './atomData';
+import { AtomData, getShellRadius, getElectronColor } from './atomData';
 
 interface Atom3DProps {
   atomData: AtomData;
@@ -15,6 +15,13 @@ interface Atom3DProps {
   showElectrons: boolean;
   highlight?: boolean; // For bonding mode highlighting
   availableBonds?: number; // Number of bonds this atom can still make
+}
+
+interface ElectronShell {
+  electrons: number;
+  radius: number;
+  color: string;
+  shellIndex: number;
 }
 
 export const Atom3D: React.FC<Atom3DProps> = ({
@@ -30,27 +37,57 @@ export const Atom3D: React.FC<Atom3DProps> = ({
   availableBonds = 0
 }) => {
   const atomRef = useRef<THREE.Group>(null);
-  const electronRefs = useRef<THREE.Group[]>([]);
+  const electronRefs = useRef<THREE.Group[][]>([]);
   const [hovered, setHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState<THREE.Vector3>(new THREE.Vector3());
   
   const { camera, gl, raycaster, pointer } = useThree();
 
+  // Calculate electron shells from electron configuration
+  const electronShells: ElectronShell[] = atomData.electronConfiguration.map((electrons, index) => ({
+    electrons,
+    radius: getShellRadius(index, atomData.radius),
+    color: getElectronColor(index),
+    shellIndex: index
+  }));
+
+  // Initialize electron refs for all shells
+  useEffect(() => {
+    electronRefs.current = electronShells.map((shell) => 
+      new Array(shell.electrons).fill(null)
+    );
+  }, [atomData.symbol]);
+
   // Animation for electron orbits
   useFrame((state) => {
     if (showElectrons && electronRefs.current) {
-      electronRefs.current.forEach((electronRef, index) => {
-        if (electronRef) {
-          const time = state.clock.getElapsedTime();
-          const radius = 0.8 + index * 0.3;
-          const speed = 1 + index * 0.5;
-          const angle = time * speed + index * Math.PI * 2 / atomData.valenceElectrons;
-          
-          electronRef.position.x = Math.cos(angle) * radius;
-          electronRef.position.z = Math.sin(angle) * radius;
-          electronRef.position.y = Math.sin(angle * 2) * 0.2;
-        }
+      electronShells.forEach((shell, shellIndex) => {
+        const shellRefs = electronRefs.current[shellIndex];
+        if (!shellRefs) return;
+
+        shellRefs.forEach((electronRef, electronIndex) => {
+          if (electronRef) {
+            const time = state.clock.getElapsedTime();
+            const radius = shell.radius;
+            
+            // Different speeds for different shells and electrons
+            const baseSpeed = 0.5 + shellIndex * 0.3;
+            const electronSpeed = baseSpeed + (electronIndex * 0.1);
+            
+            // Distribute electrons evenly around the shell
+            const angleOffset = (electronIndex * 2 * Math.PI) / shell.electrons;
+            const angle = time * electronSpeed + angleOffset;
+            
+            // Add some 3D movement for outer shells
+            const verticalRadius = shellIndex > 1 ? radius * 0.3 : radius * 0.1;
+            const verticalAngle = time * (electronSpeed * 0.7) + angleOffset * 1.5;
+            
+            electronRef.position.x = Math.cos(angle) * radius;
+            electronRef.position.z = Math.sin(angle) * radius;
+            electronRef.position.y = Math.sin(verticalAngle) * verticalRadius;
+          }
+        });
       });
     }
     
@@ -160,7 +197,7 @@ export const Atom3D: React.FC<Atom3DProps> = ({
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
     >
-      {/* Main atom sphere */}
+      {/* Main atom nucleus */}
       <Sphere args={[atomData.radius, 32, 32]} scale={scale}>
         <meshStandardMaterial
           color={getBondingColor()}
@@ -182,6 +219,17 @@ export const Atom3D: React.FC<Atom3DProps> = ({
         {atomData.symbol}
       </Text>
 
+      {/* Atomic number */}
+      <Text
+        position={[0, atomData.radius + 0.4, 0]}
+        fontSize={0.15}
+        color="cyan"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Z = {atomData.atomicNumber}
+      </Text>
+
       {/* Available bonds indicator */}
       <Text
         position={[0, -atomData.radius - 0.3, 0]}
@@ -193,7 +241,7 @@ export const Atom3D: React.FC<Atom3DProps> = ({
         Bonds: {availableBonds}
       </Text>
 
-      {/* Valence electrons count */}
+      {/* Electron configuration display */}
       <Text
         position={[0, -atomData.radius - 0.5, 0]}
         fontSize={0.12}
@@ -201,42 +249,64 @@ export const Atom3D: React.FC<Atom3DProps> = ({
         anchorX="center"
         anchorY="middle"
       >
-        {atomData.valenceElectrons}e⁻
+        Config: {atomData.electronConfiguration.join('-')}
       </Text>
 
-      {/* Electron orbits */}
-      {showElectrons && Array.from({ length: atomData.valenceElectrons }).map((_, index) => (
-        <group
-          key={index}
-          ref={(el) => {
-            if (el) electronRefs.current[index] = el;
-          }}
-        >
-          <Sphere args={[0.05, 8, 8]}>
-            <meshStandardMaterial
-              color="#00ffff"
-              emissive="#00ffff"
-              emissiveIntensity={0.5}
+      {/* Electron shells and electrons */}
+      {showElectrons && electronShells.map((shell, shellIndex) => (
+        <group key={`shell-${shellIndex}`}>
+          {/* Orbital ring for this shell */}
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[shell.radius - 0.02, shell.radius + 0.02, 64]} />
+            <meshBasicMaterial 
+              color={shell.color} 
+              transparent 
+              opacity={0.2} 
             />
-          </Sphere>
+          </mesh>
+
+          {/* Shell label */}
+          <Text
+            position={[shell.radius + 0.2, 0, 0]}
+            fontSize={0.1}
+            color={shell.color}
+            anchorX="center"
+            anchorY="middle"
+          >
+            {['K', 'L', 'M', 'N', 'O', 'P', 'Q'][shellIndex]} ({shell.electrons}e⁻)
+          </Text>
+
+          {/* Individual electrons in this shell */}
+          {Array.from({ length: shell.electrons }).map((_, electronIndex) => (
+            <group
+              key={`electron-${shellIndex}-${electronIndex}`}
+              ref={(el) => {
+                if (el && electronRefs.current[shellIndex]) {
+                  electronRefs.current[shellIndex][electronIndex] = el;
+                }
+              }}
+            >
+              <Sphere args={[0.04, 16, 16]}>
+                <meshStandardMaterial
+                  color={shell.color}
+                  emissive={shell.color}
+                  emissiveIntensity={0.6}
+                />
+              </Sphere>
+              
+              {/* Electron trail effect */}
+              <mesh>
+                <sphereGeometry args={[0.06, 8, 8]} />
+                <meshBasicMaterial
+                  color={shell.color}
+                  transparent
+                  opacity={0.3}
+                />
+              </mesh>
+            </group>
+          ))}
         </group>
       ))}
-
-      {/* Orbital rings */}
-      {showElectrons && (
-        <>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.75, 0.8, 32]} />
-            <meshBasicMaterial color="#444444" transparent opacity={0.3} />
-          </mesh>
-          {atomData.valenceElectrons > 2 && (
-            <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[1.05, 1.1, 32]} />
-              <meshBasicMaterial color="#444444" transparent opacity={0.3} />
-            </mesh>
-          )}
-        </>
-      )}
 
       {/* Selection indicator */}
       {selected && (
@@ -276,6 +346,52 @@ export const Atom3D: React.FC<Atom3DProps> = ({
           <ringGeometry args={[1.4, 1.5, 32]} />
           <meshBasicMaterial color="#00ff00" transparent opacity={0.3} />
         </mesh>
+      )}
+
+      {/* Electron density visualization for heavier atoms */}
+      {atomData.atomicNumber > 18 && showElectrons && (
+        <mesh>
+          <sphereGeometry args={[atomData.radius + 0.6, 32, 32]} />
+          <meshBasicMaterial
+            color={atomData.color}
+            transparent
+            opacity={0.05}
+            wireframe={false}
+          />
+        </mesh>
+      )}
+
+      {/* Nuclear composition info */}
+      {selected && (
+        <>
+          <Text
+            position={[0, -atomData.radius - 0.7, 0]}
+            fontSize={0.1}
+            color="white"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {atomData.name}
+          </Text>
+          <Text
+            position={[0, -atomData.radius - 0.85, 0]}
+            fontSize={0.08}
+            color="lightgray"
+            anchorX="center"
+            anchorY="middle"
+          >
+            Group: {atomData.group} | Period: {atomData.period}
+          </Text>
+          <Text
+            position={[0, -atomData.radius - 1.0, 0]}
+            fontSize={0.08}
+            color="lightblue"
+            anchorX="center"
+            anchorY="middle"
+          >
+            Electronegativity: {atomData.electronegativity}
+          </Text>
+        </>
       )}
     </group>
   );
