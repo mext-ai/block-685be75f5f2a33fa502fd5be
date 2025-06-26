@@ -30,6 +30,31 @@ interface GameUIProps {
   placedAtoms: PlacedAtom[];
 }
 
+// Periodic table layout - position [row, col] for each element
+const PERIODIC_LAYOUT: Record<string, [number, number]> = {
+  // Period 1
+  'H': [0, 0], 'He': [0, 17],
+  
+  // Period 2
+  'Li': [1, 0], 'Be': [1, 1],
+  'B': [1, 12], 'C': [1, 13], 'N': [1, 14], 'O': [1, 15], 'F': [1, 16], 'Ne': [1, 17],
+  
+  // Period 3
+  'Na': [2, 0], 'Mg': [2, 1],
+  'Al': [2, 12], 'Si': [2, 13], 'P': [2, 14], 'S': [2, 15], 'Cl': [2, 16], 'Ar': [2, 17],
+  
+  // Period 4
+  'K': [3, 0], 'Ca': [3, 1],
+  'Sc': [3, 2], 'Ti': [3, 3], 'V': [3, 4], 'Cr': [3, 5], 'Mn': [3, 6], 'Fe': [3, 7], 'Co': [3, 8], 'Ni': [3, 9], 'Cu': [3, 10], 'Zn': [3, 11],
+  'Ga': [3, 12], 'Ge': [3, 13], 'As': [3, 14], 'Se': [3, 15], 'Br': [3, 16], 'Kr': [3, 17],
+  
+  // Period 5
+  'Rb': [4, 0], 'Sr': [4, 1], 'Ag': [4, 10], 'I': [4, 16],
+  
+  // Period 6
+  'Cs': [5, 0], 'Ba': [5, 1], 'Au': [5, 10], 'Hg': [5, 11], 'Pb': [5, 13]
+};
+
 export const GameUI: React.FC<GameUIProps> = ({
   selectedAtom,
   currentChallenge,
@@ -51,7 +76,24 @@ export const GameUI: React.FC<GameUIProps> = ({
   placedAtoms
 }) => {
   const [showInstructions, setShowInstructions] = useState(true);
+  const [showPeriodicTable, setShowPeriodicTable] = useState(true);
   const currentTarget = MOLECULES[currentChallenge];
+
+  // Create periodic table grid
+  const createPeriodicTableGrid = () => {
+    const grid: (string | null)[][] = Array(6).fill(null).map(() => Array(18).fill(null));
+    
+    // Place atoms in their positions
+    Object.entries(PERIODIC_LAYOUT).forEach(([symbol, [row, col]]) => {
+      if (ATOMS[symbol]) {
+        grid[row][col] = symbol;
+      }
+    });
+    
+    return grid;
+  };
+
+  const periodicGrid = createPeriodicTableGrid();
 
   return (
     <div style={{
@@ -181,53 +223,138 @@ export const GameUI: React.FC<GameUIProps> = ({
       </div>
 
       {/* Periodic Table */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '20px',
-        pointerEvents: 'auto'
-      }}>
+      {showPeriodicTable && (
         <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '15px',
-          borderRadius: '10px'
+          position: 'absolute',
+          bottom: '20px',
+          left: '20px',
+          pointerEvents: 'auto'
         }}>
-          <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Periodic Table</h3>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '8px',
-            marginBottom: '10px'
+            background: 'rgba(0, 0, 0, 0.9)',
+            padding: '15px',
+            borderRadius: '10px',
+            border: '2px solid #00ffff'
           }}>
-            {Object.entries(ATOMS).map(([symbol, atom]) => (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '10px'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '16px' }}>Periodic Table</h3>
               <button
-                key={symbol}
-                onClick={() => onAtomSelect(symbol)}
+                onClick={() => setShowPeriodicTable(false)}
                 style={{
-                  width: '60px',
-                  height: '60px',
-                  border: selectedAtom === symbol ? '3px solid #ffff00' : '2px solid #666',
-                  borderRadius: '8px',
-                  background: `linear-gradient(135deg, ${atom.color}88, ${atom.color}cc)`,
-                  color: 'white',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#00ffff',
                   cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+                  fontSize: '16px',
+                  padding: '0',
+                  width: '20px',
+                  height: '20px'
                 }}
-                title={`${atom.name} - ${atom.valenceElectrons} valence electrons`}
+                title="Hide periodic table"
               >
-                <div style={{ fontSize: '16px' }}>{symbol}</div>
-                <div style={{ fontSize: '10px' }}>{atom.valenceElectrons}e⁻</div>
+                ✕
               </button>
-            ))}
+            </div>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(18, 1fr)',
+              gridTemplateRows: 'repeat(6, 1fr)',
+              gap: '2px',
+              width: 'fit-content'
+            }}>
+              {periodicGrid.map((row, rowIndex) =>
+                row.map((symbol, colIndex) => {
+                  if (!symbol || !ATOMS[symbol]) {
+                    return (
+                      <div
+                        key={`${rowIndex}-${colIndex}`}
+                        style={{
+                          width: '32px',
+                          height: '32px'
+                        }}
+                      />
+                    );
+                  }
+                  
+                  const atom = ATOMS[symbol];
+                  return (
+                    <button
+                      key={symbol}
+                      onClick={() => onAtomSelect(symbol)}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        border: selectedAtom === symbol ? '2px solid #ffff00' : '1px solid #666',
+                        borderRadius: '4px',
+                        background: `linear-gradient(135deg, ${atom.color}88, ${atom.color}cc)`,
+                        color: 'white',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                        padding: '1px'
+                      }}
+                      title={`${atom.name} (${atom.symbol})\nAtomic #: ${atom.atomicNumber}\nValence: ${atom.valenceElectrons}e⁻\nGroup: ${atom.group}, Period: ${atom.period}`}
+                    >
+                      <div style={{ fontSize: '12px', lineHeight: '1' }}>{symbol}</div>
+                      <div style={{ fontSize: '8px', lineHeight: '1', opacity: 0.8 }}>{atom.atomicNumber}</div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+            
+            <div style={{ 
+              marginTop: '10px', 
+              fontSize: '10px', 
+              color: '#888',
+              display: 'flex',
+              gap: '15px'
+            }}>
+              <div>🔴 <span style={{ color: '#ff6666' }}>Non-metals</span></div>
+              <div>🔵 <span style={{ color: '#66b3ff' }}>Metals</span></div>
+              <div>🟡 <span style={{ color: '#ffff66' }}>Metalloids</span></div>
+              <div>⚪ <span style={{ color: '#cccccc' }}>Noble gases</span></div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Toggle Periodic Table Button (when hidden) */}
+      {!showPeriodicTable && (
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '20px',
+          pointerEvents: 'auto'
+        }}>
+          <button
+            onClick={() => setShowPeriodicTable(true)}
+            style={{
+              padding: '15px 20px',
+              border: 'none',
+              borderRadius: '10px',
+              background: '#00ffff',
+              color: 'black',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            📊 Show Periodic Table
+          </button>
+        </div>
+      )}
 
       {/* Controls */}
       <div style={{
