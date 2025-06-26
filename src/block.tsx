@@ -165,6 +165,74 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     }, duration);
   }, []);
 
+  // Delete atom function
+  const deleteAtom = useCallback((atomId: string) => {
+    const atomToDelete = placedAtoms.find(atom => atom.id === atomId);
+    if (!atomToDelete) return;
+
+    // Remove all bonds connected to this atom
+    const bondsToRemove = bonds.filter(bond => 
+      bond.atom1Id === atomId || bond.atom2Id === atomId
+    );
+    
+    setBonds(prev => prev.filter(bond => 
+      bond.atom1Id !== atomId && bond.atom2Id !== atomId
+    ));
+
+    // Update available bonds for atoms that were connected to the deleted atom
+    const affectedAtomIds = bondsToRemove.flatMap(bond => 
+      bond.atom1Id === atomId ? [bond.atom2Id] : [bond.atom1Id]
+    );
+
+    setPlacedAtoms(prev => {
+      const updatedAtoms = prev.filter(atom => atom.id !== atomId);
+      
+      // Update available bonds for affected atoms
+      return updatedAtoms.map(atom => {
+        if (affectedAtomIds.includes(atom.id)) {
+          const remainingBonds = bonds.filter(bond => 
+            (bond.atom1Id === atom.id || bond.atom2Id === atom.id) &&
+            bond.atom1Id !== atomId && bond.atom2Id !== atomId
+          ).length;
+          
+          return {
+            ...atom,
+            availableBonds: calculateAvailableBonds(atom.atomData, remainingBonds)
+          };
+        }
+        return atom;
+      });
+    });
+
+    // Clear selection if the deleted atom was selected
+    if (selectedAtomId === atomId) {
+      setSelectedAtomId(null);
+    }
+    if (firstAtomForBond === atomId) {
+      setFirstAtomForBond(null);
+    }
+
+    showMessage(`${atomToDelete.symbol} atom deleted!`);
+  }, [placedAtoms, bonds, selectedAtomId, firstAtomForBond, showMessage]);
+
+  // Handle keyboard events for deletion
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Delete or Suppr key (different keyboard layouts)
+      if ((event.key === 'Delete' || event.code === 'Delete' || 
+           event.key === 'Suppr' || event.code === 'Suppr') && 
+          selectedAtomId) {
+        event.preventDefault();
+        deleteAtom(selectedAtomId);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedAtomId, deleteAtom]);
+
   // Calculate available bonds for an atom based on valence electrons and existing bonds
   const calculateAvailableBonds = (atomData: AtomData, existingBonds: number): number => {
     // Simple bonding rules based on valence electrons
@@ -535,7 +603,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
           addAtom('H');
           setTimeout(() => addAtom('O'), 500);
         }, 500);
-        showMessage('Try building Water (H2O)! Left click = move atoms, Right click = move camera, WASD = camera movement, Bond Mode = connect atoms.', 8000);
+        showMessage('Try building Water (H2O)! Left click = move atoms, Right click = move camera, WASD = camera movement, Bond Mode = connect atoms. Click an atom and press Delete/Suppr to remove it.', 10000);
       }, 1000);
     }
   }, [gameMode, placedAtoms.length]);
