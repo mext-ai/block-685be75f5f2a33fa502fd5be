@@ -28,6 +28,471 @@ interface MolecularBond {
   strength: number;
 }
 
+// Home Page Component
+const HomePage: React.FC<{ onModeSelect: (mode: 'tutorial' | 'practice' | 'challenge') => void }> = ({ onModeSelect }) => {
+  const [hoveredMode, setHoveredMode] = useState<string | null>(null);
+
+  // Send initial completion event for home page load
+  useEffect(() => {
+    window.postMessage({ 
+      type: 'BLOCK_COMPLETION', 
+      blockId: 'molecular-bonding-lab', 
+      completed: true,
+      stage: 'home_loaded'
+    }, '*');
+    window.parent.postMessage({ 
+      type: 'BLOCK_COMPLETION', 
+      blockId: 'molecular-bonding-lab', 
+      completed: true,
+      stage: 'home_loaded'
+    }, '*');
+  }, []);
+
+  return (
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      background: 'linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'Arial, sans-serif',
+      color: 'white',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Animated background elements */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 40% 80%, rgba(0, 255, 0, 0.05) 0%, transparent 50%)
+        `,
+        animation: 'float 6s ease-in-out infinite'
+      }} />
+
+      {/* Floating molecules animation */}
+      <div style={{
+        position: 'absolute',
+        top: '10%',
+        right: '10%',
+        fontSize: '3rem',
+        opacity: 0.3,
+        animation: 'floatMolecule 8s ease-in-out infinite'
+      }}>
+        H₂O
+      </div>
+      <div style={{
+        position: 'absolute',
+        bottom: '15%',
+        left: '8%',
+        fontSize: '2.5rem',
+        opacity: 0.2,
+        animation: 'floatMolecule 6s ease-in-out infinite reverse'
+      }}>
+        CO₂
+      </div>
+      <div style={{
+        position: 'absolute',
+        top: '20%',
+        left: '15%',
+        fontSize: '2rem',
+        opacity: 0.25,
+        animation: 'floatMolecule 10s ease-in-out infinite'
+      }}>
+        NH₃
+      </div>
+
+      {/* Main Title */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '80px',
+        zIndex: 2,
+        animation: 'fadeInUp 1s ease-out'
+      }}>
+        <h1 style={{
+          fontSize: '4.5rem',
+          margin: 0,
+          background: 'linear-gradient(135deg, #00ffff 0%, #0099cc 50%, #ff6b6b 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          textShadow: '0 0 30px rgba(0,255,255,0.3)',
+          marginBottom: '20px',
+          fontWeight: 'bold'
+        }}>
+          🧪 Molecular Bonding Lab
+        </h1>
+        <p style={{
+          fontSize: '1.6rem',
+          margin: 0,
+          opacity: 0.9,
+          color: '#00ffff',
+          textShadow: '0 0 10px rgba(0,255,255,0.3)',
+          marginBottom: '10px'
+        }}>
+          Interactive 3D Chemistry Simulation
+        </p>
+        <p style={{
+          fontSize: '1.1rem',
+          margin: '10px 0 0 0',
+          opacity: 0.7,
+          maxWidth: '700px',
+          lineHeight: '1.6'
+        }}>
+          Master molecular bonding through hands-on experimentation. Build molecules, create chemical bonds, 
+          and discover the fundamental principles of chemistry in an immersive 3D environment.
+        </p>
+      </div>
+
+      {/* Welcome Message */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '50px',
+        zIndex: 2,
+        animation: 'fadeIn 2s ease-out'
+      }}>
+        <h2 style={{
+          fontSize: '2rem',
+          margin: '0 0 15px 0',
+          color: '#ffd700',
+          textShadow: '0 0 20px rgba(255,215,0,0.4)'
+        }}>
+          Choose Your Learning Path
+        </h2>
+        <p style={{
+          fontSize: '1rem',
+          opacity: 0.8,
+          maxWidth: '600px'
+        }}>
+          Select a game mode to begin your chemistry adventure. Each mode offers a unique learning experience 
+          tailored to different skill levels and goals.
+        </p>
+      </div>
+
+      {/* Mode Selection Cards */}
+      <div style={{
+        display: 'flex',
+        gap: '40px',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        zIndex: 2,
+        animation: 'slideInUp 1.5s ease-out'
+      }}>
+        {/* Tutorial Mode */}
+        <div
+          style={{
+            width: '300px',
+            height: '380px',
+            background: hoveredMode === 'tutorial' 
+              ? 'linear-gradient(135deg, rgba(255,215,0,0.25) 0%, rgba(255,140,0,0.15) 100%)'
+              : 'rgba(0, 0, 0, 0.4)',
+            border: hoveredMode === 'tutorial' 
+              ? '3px solid #ffd700' 
+              : '2px solid rgba(255,255,255,0.2)',
+            borderRadius: '25px',
+            padding: '35px',
+            cursor: 'pointer',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: hoveredMode === 'tutorial' ? 'translateY(-15px) scale(1.08)' : 'translateY(0) scale(1)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: hoveredMode === 'tutorial' 
+              ? '0 25px 50px rgba(255,215,0,0.4), 0 0 0 1px rgba(255,215,0,0.2)' 
+              : '0 15px 35px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+          onMouseEnter={() => setHoveredMode('tutorial')}
+          onMouseLeave={() => setHoveredMode(null)}
+          onClick={() => onModeSelect('tutorial')}
+        >
+          {/* Background glow effect */}
+          {hoveredMode === 'tutorial' && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+          )}
+          
+          <div style={{
+            fontSize: '4.5rem',
+            marginBottom: '25px',
+            filter: hoveredMode === 'tutorial' ? 'brightness(1.3) drop-shadow(0 0 20px rgba(255,215,0,0.5))' : 'brightness(1)',
+            transition: 'all 0.3s ease'
+          }}>
+            📚
+          </div>
+          <h3 style={{
+            fontSize: '2.2rem',
+            margin: '0 0 20px 0',
+            color: hoveredMode === 'tutorial' ? '#ffd700' : '#00ffff',
+            fontWeight: 'bold',
+            textShadow: hoveredMode === 'tutorial' ? '0 0 10px rgba(255,215,0,0.5)' : 'none'
+          }}>
+            Tutorial
+          </h3>
+          <p style={{
+            fontSize: '1.1rem',
+            lineHeight: '1.6',
+            opacity: 0.9,
+            margin: '0 0 25px 0',
+            flex: 1
+          }}>
+            Perfect for beginners! Learn the fundamentals of molecular bonding with guided step-by-step lessons and interactive examples.
+          </p>
+          <div style={{
+            marginTop: 'auto',
+            padding: '12px 20px',
+            background: hoveredMode === 'tutorial' 
+              ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
+              : 'rgba(255,255,255,0.1)',
+            borderRadius: '20px',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            color: hoveredMode === 'tutorial' ? 'black' : 'white',
+            border: hoveredMode === 'tutorial' ? 'none' : '1px solid rgba(255,255,255,0.2)'
+          }}>
+            🎯 Guided Learning
+          </div>
+        </div>
+
+        {/* Practice Mode */}
+        <div
+          style={{
+            width: '300px',
+            height: '380px',
+            background: hoveredMode === 'practice' 
+              ? 'linear-gradient(135deg, rgba(78,205,196,0.25) 0%, rgba(68,160,141,0.15) 100%)'
+              : 'rgba(0, 0, 0, 0.4)',
+            border: hoveredMode === 'practice' 
+              ? '3px solid #4ecdc4' 
+              : '2px solid rgba(255,255,255,0.2)',
+            borderRadius: '25px',
+            padding: '35px',
+            cursor: 'pointer',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: hoveredMode === 'practice' ? 'translateY(-15px) scale(1.08)' : 'translateY(0) scale(1)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: hoveredMode === 'practice' 
+              ? '0 25px 50px rgba(78,205,196,0.4), 0 0 0 1px rgba(78,205,196,0.2)' 
+              : '0 15px 35px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+          onMouseEnter={() => setHoveredMode('practice')}
+          onMouseLeave={() => setHoveredMode(null)}
+          onClick={() => onModeSelect('practice')}
+        >
+          {/* Background glow effect */}
+          {hoveredMode === 'practice' && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at center, rgba(78,205,196,0.1) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+          )}
+          
+          <div style={{
+            fontSize: '4.5rem',
+            marginBottom: '25px',
+            filter: hoveredMode === 'practice' ? 'brightness(1.3) drop-shadow(0 0 20px rgba(78,205,196,0.5))' : 'brightness(1)',
+            transition: 'all 0.3s ease'
+          }}>
+            🔬
+          </div>
+          <h3 style={{
+            fontSize: '2.2rem',
+            margin: '0 0 20px 0',
+            color: hoveredMode === 'practice' ? '#4ecdc4' : '#00ffff',
+            fontWeight: 'bold',
+            textShadow: hoveredMode === 'practice' ? '0 0 10px rgba(78,205,196,0.5)' : 'none'
+          }}>
+            Practice
+          </h3>
+          <p style={{
+            fontSize: '1.1rem',
+            lineHeight: '1.6',
+            opacity: 0.9,
+            margin: '0 0 25px 0',
+            flex: 1
+          }}>
+            Unlimited experimentation! Build any molecules you want, test different combinations, and explore chemistry at your own pace.
+          </p>
+          <div style={{
+            marginTop: 'auto',
+            padding: '12px 20px',
+            background: hoveredMode === 'practice' 
+              ? 'linear-gradient(135deg, #4ecdc4 0%, #7bdcb5 100%)' 
+              : 'rgba(255,255,255,0.1)',
+            borderRadius: '20px',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            color: hoveredMode === 'practice' ? 'white' : 'white',
+            border: hoveredMode === 'practice' ? 'none' : '1px solid rgba(255,255,255,0.2)'
+          }}>
+            🆓 Free Exploration
+          </div>
+        </div>
+
+        {/* Challenge Mode */}
+        <div
+          style={{
+            width: '300px',
+            height: '380px',
+            background: hoveredMode === 'challenge' 
+              ? 'linear-gradient(135deg, rgba(255,107,107,0.25) 0%, rgba(255,71,87,0.15) 100%)'
+              : 'rgba(0, 0, 0, 0.4)',
+            border: hoveredMode === 'challenge' 
+              ? '3px solid #ff6b6b' 
+              : '2px solid rgba(255,255,255,0.2)',
+            borderRadius: '25px',
+            padding: '35px',
+            cursor: 'pointer',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: hoveredMode === 'challenge' ? 'translateY(-15px) scale(1.08)' : 'translateY(0) scale(1)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: hoveredMode === 'challenge' 
+              ? '0 25px 50px rgba(255,107,107,0.4), 0 0 0 1px rgba(255,107,107,0.2)' 
+              : '0 15px 35px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+          onMouseEnter={() => setHoveredMode('challenge')}
+          onMouseLeave={() => setHoveredMode(null)}
+          onClick={() => onModeSelect('challenge')}
+        >
+          {/* Background glow effect */}
+          {hoveredMode === 'challenge' && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at center, rgba(255,107,107,0.1) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+          )}
+          
+          <div style={{
+            fontSize: '4.5rem',
+            marginBottom: '25px',
+            filter: hoveredMode === 'challenge' ? 'brightness(1.3) drop-shadow(0 0 20px rgba(255,107,107,0.5))' : 'brightness(1)',
+            transition: 'all 0.3s ease'
+          }}>
+            🏆
+          </div>
+          <h3 style={{
+            fontSize: '2.2rem',
+            margin: '0 0 20px 0',
+            color: hoveredMode === 'challenge' ? '#ff6b6b' : '#00ffff',
+            fontWeight: 'bold',
+            textShadow: hoveredMode === 'challenge' ? '0 0 10px rgba(255,107,107,0.5)' : 'none'
+          }}>
+            Challenge
+          </h3>
+          <p style={{
+            fontSize: '1.1rem',
+            lineHeight: '1.6',
+            opacity: 0.9,
+            margin: '0 0 25px 0',
+            flex: 1
+          }}>
+            Test your skills! Complete specific molecular building tasks, solve chemistry puzzles, and earn achievements.
+          </p>
+          <div style={{
+            marginTop: 'auto',
+            padding: '12px 20px',
+            background: hoveredMode === 'challenge' 
+              ? 'linear-gradient(135deg, #ff6b6b 0%, #ff8a80 100%)' 
+              : 'rgba(255,255,255,0.1)',
+            borderRadius: '20px',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            color: hoveredMode === 'challenge' ? 'white' : 'white',
+            border: hoveredMode === 'challenge' ? 'none' : '1px solid rgba(255,255,255,0.2)'
+          }}>
+            🎮 Goal-Oriented
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Info */}
+      <div style={{
+        position: 'absolute',
+        bottom: '30px',
+        textAlign: 'center',
+        opacity: 0.6,
+        fontSize: '0.95rem',
+        zIndex: 2,
+        animation: 'fadeIn 3s ease-out'
+      }}>
+        <p style={{ margin: '5px 0' }}>🎮 Use WASD for camera movement • Right-click to rotate • Left-click to interact</p>
+        <p style={{ margin: '5px 0' }}>⚛️ Build molecules by connecting atoms • Learn chemistry through interactive play</p>
+      </div>
+
+      {/* CSS Animations */}
+      <style>
+        {`
+          @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-10px) rotate(120deg); }
+            66% { transform: translateY(5px) rotate(240deg); }
+          }
+          
+          @keyframes floatMolecule {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.2; }
+            25% { transform: translateY(-20px) translateX(10px); opacity: 0.3; }
+            50% { transform: translateY(-10px) translateX(-5px); opacity: 0.25; }
+            75% { transform: translateY(-30px) translateX(15px); opacity: 0.35; }
+          }
+          
+          @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+          
+          @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
+          
+          @keyframes slideInUp {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
 // Keyboard camera controls component
 const KeyboardCameraControls: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   const { camera } = useThree();
@@ -107,6 +572,9 @@ const KeyboardCameraControls: React.FC<{ enabled: boolean }> = ({ enabled }) => 
 };
 
 const Block: React.FC<BlockProps> = ({ title, description }) => {
+  // Main app state - START WITH HOME PAGE
+  const [currentScreen, setCurrentScreen] = useState<'home' | 'game'>('home');
+  
   // Game state
   const [gameMode, setGameMode] = useState<'tutorial' | 'practice' | 'challenge'>('tutorial');
   const [currentChallenge, setCurrentChallenge] = useState(0);
@@ -133,6 +601,53 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
 
   const atomIdCounter = useRef(0);
   const messageTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Handle mode selection from home page
+  const handleModeSelect = (mode: 'tutorial' | 'practice' | 'challenge') => {
+    setGameMode(mode);
+    setCurrentChallenge(0);
+    setCurrentScreen('game');
+    
+    // Reset game state
+    setPlacedAtoms([]);
+    setBonds([]);
+    setBuiltMolecules([]);
+    setScore(0);
+    setSelectedAtomId(null);
+    setDragging(null);
+    setBondingMode(false);
+    setFirstAtomForBond(null);
+    setCameraControlsEnabled(true);
+    setKeyboardControlsEnabled(true);
+    
+    // Set appropriate welcome message
+    const messages = {
+      tutorial: 'Tutorial mode: Learn to create bonds manually! Try building Water (H2O) with the atoms that will appear.',
+      practice: 'Practice mode: Build any molecules you want! Add atoms from the periodic table and experiment freely.',
+      challenge: `Challenge mode: Build ${MOLECULES[0]?.formula} to start! Follow the instructions to complete each challenge.`
+    };
+    
+    setMessage(messages[mode]);
+  };
+
+  // Go back to home page
+  const handleBackToHome = () => {
+    setCurrentScreen('home');
+    // Reset all game state
+    setPlacedAtoms([]);
+    setBonds([]);
+    setBuiltMolecules([]);
+    setScore(0);
+    setSelectedAtomId(null);
+    setDragging(null);
+    setBondingMode(false);
+    setFirstAtomForBond(null);
+    setCameraControlsEnabled(true);
+    setKeyboardControlsEnabled(true);
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+  };
 
   // Send completion event
   useEffect(() => {
@@ -225,13 +740,19 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         event.preventDefault();
         deleteAtom(selectedAtomId);
       }
+      
+      // ESC key to go back to home (only if in game)
+      if (event.key === 'Escape' && currentScreen === 'game') {
+        event.preventDefault();
+        handleBackToHome();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedAtomId, deleteAtom]);
+  }, [selectedAtomId, deleteAtom, currentScreen]);
 
   // Calculate available bonds for an atom based on valence electrons and existing bonds
   const calculateAvailableBonds = (atomData: AtomData, existingBonds: number): number => {
@@ -567,7 +1088,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     showMessage('Scene reset. Select atoms from the periodic table to start building!');
   };
 
-  // Toggle game mode
+  // Toggle game mode (no longer used, but kept for compatibility)
   const handleModeChange = (mode: 'tutorial' | 'practice' | 'challenge') => {
     setGameMode(mode);
     setCurrentChallenge(0);
@@ -594,7 +1115,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
 
   // Add some starter atoms in tutorial mode
   useEffect(() => {
-    if (gameMode === 'tutorial' && placedAtoms.length === 0) {
+    if (gameMode === 'tutorial' && placedAtoms.length === 0 && currentScreen === 'game') {
       // Add H2O atoms for tutorial
       setTimeout(() => {
         addAtom('H');
@@ -605,7 +1126,12 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         showMessage('Try building Water (H2O)! Left click = move atoms, Right click = move camera, WASD = camera movement, Bond Mode = connect atoms. Click an atom and press Delete/Suppr to remove it.', 10000);
       }, 1000);
     }
-  }, [gameMode, placedAtoms.length]);
+  }, [gameMode, placedAtoms.length, currentScreen]);
+
+  // Render home page or game based on current screen
+  if (currentScreen === 'home') {
+    return <HomePage onModeSelect={handleModeSelect} />;
+  }
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
@@ -705,6 +1231,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         onModeChange={handleModeChange}
         onReset={handleReset}
         onNextChallenge={handleNextChallenge}
+        onBackToHome={handleBackToHome}
         builtMolecules={builtMolecules}
         message={message}
         placedAtoms={placedAtoms}
