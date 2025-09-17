@@ -25,6 +25,7 @@ interface GameUIProps {
   onModeChange: (mode: 'tutorial' | 'practice' | 'challenge') => void;
   onReset: () => void;
   onNextChallenge: () => void;
+  onBackToHome: () => void;
   builtMolecules: string[];
   message: string;
   placedAtoms: PlacedAtom[];
@@ -71,6 +72,7 @@ export const GameUI: React.FC<GameUIProps> = ({
   onModeChange,
   onReset,
   onNextChallenge,
+  onBackToHome,
   builtMolecules,
   message,
   placedAtoms
@@ -95,6 +97,22 @@ export const GameUI: React.FC<GameUIProps> = ({
   };
 
   const periodicGrid = createPeriodicTableGrid();
+
+  // Get mode display info
+  const getModeInfo = () => {
+    switch (gameMode) {
+      case 'tutorial':
+        return { name: 'Tutorial', color: '#ffd700', emoji: '📚' };
+      case 'practice':
+        return { name: 'Practice', color: '#4ecdc4', emoji: '🔬' };
+      case 'challenge':
+        return { name: 'Challenge', color: '#ff6b6b', emoji: '🏆' };
+      default:
+        return { name: 'Game', color: '#00ffff', emoji: '🎮' };
+    }
+  };
+
+  const modeInfo = getModeInfo();
 
   return (
     <div style={{
@@ -125,40 +143,62 @@ export const GameUI: React.FC<GameUIProps> = ({
         zIndex: 1000
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {/* Back to Home Button */}
+          <button
+            onClick={onBackToHome}
+            style={{
+              padding: '10px 15px',
+              border: 'none',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%)',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 12px rgba(255,107,107,0.3)'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(255,107,107,0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,107,107,0.3)';
+            }}
+            title="Press ESC to go back to home"
+          >
+            ← Home
+          </button>
+
           <div>
-            <h1 style={{ margin: 0, fontSize: '24px', color: '#00ffff', textShadow: '0 0 10px rgba(0,255,255,0.5)' }}>
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: '24px', 
+              color: '#00ffff', 
+              textShadow: '0 0 10px rgba(0,255,255,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
               🧪 Molecular Bonding Lab
+              <span style={{
+                fontSize: '16px',
+                background: `linear-gradient(135deg, ${modeInfo.color} 0%, ${modeInfo.color}aa 100%)`,
+                color: gameMode === 'tutorial' ? 'black' : 'white',
+                padding: '4px 12px',
+                borderRadius: '12px',
+                fontWeight: 'bold'
+              }}>
+                {modeInfo.emoji} {modeInfo.name}
+              </span>
             </h1>
             <p style={{ margin: '2px 0 0 0', fontSize: '12px', opacity: 0.8 }}>
-              Interactive 3D Chemistry Simulation
+              Interactive 3D Chemistry Simulation • Press ESC for menu
             </p>
-          </div>
-          
-          {/* Game Mode Pills */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {(['tutorial', 'practice', 'challenge'] as const).map(mode => (
-              <button
-                key={mode}
-                onClick={() => onModeChange(mode)}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '20px',
-                  background: gameMode === mode 
-                    ? 'linear-gradient(135deg, #00ffff 0%, #0099cc 100%)' 
-                    : 'rgba(255,255,255,0.1)',
-                  color: gameMode === mode ? 'black' : 'white',
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                  transition: 'all 0.3s ease',
-                  backdropFilter: 'blur(5px)'
-                }}
-              >
-                {mode}
-              </button>
-            ))}
           </div>
         </div>
         
@@ -766,7 +806,7 @@ export const GameUI: React.FC<GameUIProps> = ({
                 <li>Check atom bonding capacity (shown in atoms list)</li>
                 <li>Use Bond Mode to connect atoms precisely</li>
                 <li>Noble gases (He, Ne, Ar) don't form bonds</li>
-                <li>Different game modes offer different challenges</li>
+                <li>Press ESC to return to the main menu</li>
               </ul>
             </div>
           </div>
