@@ -308,28 +308,25 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
       return;
     }
 
-    // In bonding mode - use a callback to ensure we have the latest state
-    setFirstAtomForBond(currentFirst => {
-      if (!currentFirst) {
-        // Select first atom for bonding
-        const atom = placedAtoms.find(a => a.id === atomId);
-        if (atom && atom.availableBonds > 0) {
-          showMessage(`Selected ${atom.symbol}. Now click another atom to create a bond.`);
-          return atomId;
-        } else {
-          showMessage(`${atom?.symbol} cannot form more bonds!`);
-          return null;
-        }
-      } else if (currentFirst === atomId) {
-        // Clicked same atom, cancel
-        showMessage('Bond creation cancelled.');
-        return null;
+    // In bonding mode - handle bond creation logic
+    if (!firstAtomForBond) {
+      // Select first atom for bonding
+      const atom = placedAtoms.find(a => a.id === atomId);
+      if (atom && atom.availableBonds > 0) {
+        setFirstAtomForBond(atomId);
+        showMessage(`Selected ${atom.symbol}. Now click another atom to create a bond.`);
       } else {
-        // Try to create bond between first and second atom
-        createBond(currentFirst, atomId);
-        return null; // Reset after creating bond
+        showMessage(`${atom?.symbol} cannot form more bonds!`);
       }
-    });
+    } else if (firstAtomForBond === atomId) {
+      // Clicked same atom, cancel bonding
+      setFirstAtomForBond(null);
+      showMessage('Bond creation cancelled.');
+    } else {
+      // Try to create bond between first and second atom
+      createBond(firstAtomForBond, atomId);
+      setFirstAtomForBond(null); // Reset after creating bond
+    }
   };
 
   // Create bond between two atoms
@@ -520,13 +517,15 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
 
   // Toggle bonding mode
   const toggleBondingMode = () => {
-    setBondingMode(!bondingMode);
+    const newBondingMode = !bondingMode;
+    setBondingMode(newBondingMode);
     setFirstAtomForBond(null);
-    showMessage(
-      !bondingMode 
-        ? 'Bond Mode ON: Click two atoms to create a bond between them.'
-        : 'Bond Mode OFF: You can now drag atoms to move them.'
-    );
+    
+    if (newBondingMode) {
+      showMessage('Bond Mode ON: Click two atoms to create a bond between them.');
+    } else {
+      showMessage('Bond Mode OFF: You can now drag atoms to move them.');
+    }
   };
 
   // Toggle keyboard controls
