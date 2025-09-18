@@ -57,12 +57,12 @@ const TUTORIAL_STEPS = [
   },
   {
     title: "Creating Bonds ⚡",
-    content: "Now that Bond Mode is ON:\n1. LEFT-CLICK on the Oxygen atom first\n2. Then LEFT-CLICK on a Hydrogen atom\n3. This creates a covalent bond!\n\nThe atoms will connect with a line.\n\n💡 Tip: You can right-click on bond lines to remove them if needed.",
+    content: "Now that Bond Mode is ON:\n1. RIGHT-CLICK on the Oxygen atom first\n2. Then RIGHT-CLICK on a Hydrogen atom\n3. This creates a covalent bond!\n\nThe atoms will connect with a line.\n\n💡 Tip: You can right-click on bond lines to remove them if needed.",
     action: "Create your first bond, then click Next"
   },
   {
     title: "Complete the Molecule 💧",
-    content: "Great! Now create a second bond:\n1. LEFT-CLICK the Oxygen atom again\n2. LEFT-CLICK the other Hydrogen atom\n\nThis will complete the H₂O (water) molecule!",
+    content: "Great! Now create a second bond:\n1. RIGHT-CLICK the Oxygen atom again\n2. RIGHT-CLICK the other Hydrogen atom\n\nThis will complete the H₂O (water) molecule!",
     action: "Create the second bond to finish water"
   },
   {
@@ -188,6 +188,7 @@ const HomePage: React.FC<{ onModeSelect: (mode: 'tutorial' | 'practice' | 'chall
           • <strong>WASD</strong> for camera movement<br/>
           • <strong>Right-click</strong> to rotate<br/>
           • <strong>Left-click</strong> to interact<br/>
+          • <strong>Create Bonds:</strong> Enable Bond Mode, right-click two atoms<br/>
           • Build molecules by connecting atoms<br/>
           • Learn chemistry through interactive play
         </div>
@@ -1074,8 +1075,9 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
 
   // Handle atom click for bonding or selection
   const handleAtomClick = (atomId: string, button: number) => {
-    // Right click should not interact with atoms - let camera handle it
-    if (button === 2) return;
+    // Only handle right-click in bonding mode, left-click for selection
+    if (bondingMode && button !== 2) return; // In bonding mode, only right-click works
+    if (!bondingMode && button !== 0) return; // In normal mode, only left-click works
 
     // Prevent event from firing if we're currently dragging
     if (dragging) return;
@@ -1085,13 +1087,13 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
       return;
     }
 
-    // In bonding mode - handle bond creation logic
+    // In bonding mode - handle bond creation logic with right-click
     if (!firstAtomForBond) {
       // Select first atom for bonding
       const atom = placedAtoms.find(a => a.id === atomId);
       if (atom && atom.availableBonds > 0) {
         setFirstAtomForBond(atomId);
-        showMessage(`Selected ${atom.symbol}. Now click another atom to create a bond.`);
+        showMessage(`Selected ${atom.symbol}. Now right-click another atom to create a bond.`);
       } else {
         showMessage(`${atom?.symbol} cannot form more bonds!`);
       }
@@ -1299,7 +1301,7 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setFirstAtomForBond(null);
     
     if (newBondingMode) {
-      showMessage('Bond Mode ON: Click two atoms to create a bond between them.');
+      showMessage('Bond Mode ON: Right-click two atoms to create a bond between them.');
     } else {
       showMessage('Bond Mode OFF: You can now drag atoms to move them.');
     }
