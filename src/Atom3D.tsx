@@ -9,8 +9,8 @@ interface Atom3DProps {
   position: [number, number, number];
   selected: boolean;
   dragging: boolean;
-  onSelect: () => void;
-  onDragStart: () => void;
+  onSelect: (button: number) => void; // Updated to include button parameter
+  onDragStart: (button: number) => void; // Updated to include button parameter
   onDragEnd: (position: [number, number, number]) => void;
   showElectrons: boolean;
   highlight?: boolean; // For bonding mode highlighting
@@ -120,25 +120,34 @@ export const Atom3D: React.FC<Atom3DProps> = ({
     }
   });
 
-  const handlePointerDown = (event: THREE.Event) => {
+  const handlePointerDown = (event: any) => {
     event.stopPropagation();
-    setIsDragging(true);
-    onDragStart();
-    onSelect();
     
-    // Calculate drag offset
-    if (atomRef.current && event.point) {
-      const offset = atomRef.current.position.clone().sub(event.point);
-      setDragOffset(offset);
+    // Detect which mouse button was pressed
+    const button = event.nativeEvent?.button ?? 0; // Default to left click (0) if no button info
+    
+    // Only start dragging on left click (button 0)
+    if (button === 0) {
+      setIsDragging(true);
+      onDragStart(button);
+      
+      // Calculate drag offset
+      if (atomRef.current && event.point) {
+        const offset = atomRef.current.position.clone().sub(event.point);
+        setDragOffset(offset);
+      }
+      
+      gl.domElement.style.cursor = 'grabbing';
     }
     
-    gl.domElement.style.cursor = 'grabbing';
+    // Call onSelect with button info for both left and right clicks
+    onSelect(button);
   };
 
-  const handlePointerUp = (event: THREE.Event) => {
+  const handlePointerUp = (event: any) => {
     event.stopPropagation();
     
-    if (setIsDragging && atomRef.current) {
+    if (isDragging && atomRef.current) {
       setIsDragging(false);
       onDragEnd([
         atomRef.current.position.x,
@@ -150,9 +159,10 @@ export const Atom3D: React.FC<Atom3DProps> = ({
     gl.domElement.style.cursor = hovered ? 'grab' : 'default';
   };
 
-  const handleClick = (event: THREE.Event) => {
+  // Handle context menu to prevent browser right-click menu
+  const handleContextMenu = (event: any) => {
+    event.preventDefault();
     event.stopPropagation();
-    onSelect();
   };
 
   const handlePointerEnter = () => {
@@ -193,7 +203,7 @@ export const Atom3D: React.FC<Atom3DProps> = ({
       position={position}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
-      onClick={handleClick}
+      onContextMenu={handleContextMenu}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
     >
