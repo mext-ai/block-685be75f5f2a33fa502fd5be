@@ -57,7 +57,7 @@ const TUTORIAL_STEPS = [
   },
   {
     title: "Creating Bonds ⚡",
-    content: "Now that Bond Mode is ON:\n1. Click on the Oxygen atom first\n2. Then click on a Hydrogen atom\n3. This creates a covalent bond!\n\nThe atoms will connect with a line.",
+    content: "Now that Bond Mode is ON:\n1. Click on the Oxygen atom first\n2. Then click on a Hydrogen atom\n3. This creates a covalent bond!\n\nThe atoms will connect with a line.\n\n💡 Tip: You can also right-click on bonds to remove them if needed.",
     action: "Create your first bond, then click Next"
   },
   {
