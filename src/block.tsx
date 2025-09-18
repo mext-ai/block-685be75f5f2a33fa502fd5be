@@ -66,6 +66,11 @@ const TUTORIAL_STEPS = [
     action: "Create the second bond to finish water"
   },
   {
+    title: "Removing Bonds 🔧",
+    content: "Good to know: If you make a mistake, you can remove bonds!\n• Right-click on any bond line to delete it\n• This allows you to fix errors and try again\n• Atoms will become available for new bonds",
+    action: "Try right-clicking a bond, then click Next"
+  },
+  {
     title: "Congratulations! 🎉",
     content: "You've successfully built your first molecule! You should see a completion message when the water molecule is finished. You can now:\n• Try building other molecules\n• Use Practice mode for free exploration\n• Try Challenge mode for guided objectives",
     action: "Click Finish to end the tutorial"
