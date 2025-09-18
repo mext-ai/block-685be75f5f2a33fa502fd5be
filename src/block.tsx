@@ -28,6 +28,50 @@ interface MolecularBond {
   strength: number;
 }
 
+// Tutorial steps
+const TUTORIAL_STEPS = [
+  {
+    title: "Welcome to the Tutorial! 📚",
+    content: "Let's learn how to build molecules step by step. We'll create a Water molecule (H₂O) together.",
+    action: "Click Next to continue"
+  },
+  {
+    title: "Camera Controls 🎮",
+    content: "First, let's learn how to navigate:\n• Use WASD keys to move the camera\n• Right-click and drag to rotate the view\n• Mouse wheel to zoom in/out",
+    action: "Try moving the camera, then click Next"
+  },
+  {
+    title: "Atoms Are Ready ⚛️",
+    content: "I've placed some atoms in the scene for you:\n• 2 Hydrogen atoms (H) - shown in white\n• 1 Oxygen atom (O) - shown in red\n\nThese are the building blocks for water!",
+    action: "Look around and find the atoms, then click Next"
+  },
+  {
+    title: "Moving Atoms 👆",
+    content: "You can move atoms by left-clicking and dragging them. Try moving the atoms closer together - they need to be near each other to bond.",
+    action: "Drag some atoms around, then click Next"
+  },
+  {
+    title: "Bond Mode 🔗",
+    content: "To create bonds between atoms, you need to enable Bond Mode. Look for the 'Bond Mode' button in the controls panel on the right side of the screen.",
+    action: "Click the Bond Mode button to enable it, then click Next"
+  },
+  {
+    title: "Creating Bonds ⚡",
+    content: "Now that Bond Mode is ON:\n1. Click on the Oxygen atom first\n2. Then click on a Hydrogen atom\n3. This creates a covalent bond!\n\nThe atoms will connect with a line.",
+    action: "Create your first bond, then click Next"
+  },
+  {
+    title: "Complete the Molecule 💧",
+    content: "Great! Now create a second bond:\n1. Click the Oxygen atom again\n2. Click the other Hydrogen atom\n\nThis will complete the H₂O (water) molecule!",
+    action: "Create the second bond to finish water"
+  },
+  {
+    title: "Congratulations! 🎉",
+    content: "You've successfully built your first molecule! You should see a completion message when the water molecule is finished. You can now:\n• Try building other molecules\n• Use Practice mode for free exploration\n• Try Challenge mode for guided objectives",
+    action: "Click Finish to end the tutorial"
+  }
+];
+
 // Home Page Component
 const HomePage: React.FC<{ onModeSelect: (mode: 'tutorial' | 'practice' | 'challenge') => void }> = ({ onModeSelect }) => {
   const [hoveredMode, setHoveredMode] = useState<string | null>(null);
@@ -514,6 +558,163 @@ const HomePage: React.FC<{ onModeSelect: (mode: 'tutorial' | 'practice' | 'chall
   );
 };
 
+// Tutorial Modal Component
+const TutorialModal: React.FC<{
+  step: number;
+  onNext: () => void;
+  onClose: () => void;
+}> = ({ step, onNext, onClose }) => {
+  const currentStep = TUTORIAL_STEPS[step];
+  const isLastStep = step === TUTORIAL_STEPS.length - 1;
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 3000,
+      pointerEvents: 'auto'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(25, 25, 60, 0.9) 100%)',
+        padding: '30px',
+        borderRadius: '20px',
+        border: '3px solid #ffd700',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 20px 40px rgba(255, 215, 0, 0.4)',
+        maxWidth: '600px',
+        width: '90%',
+        color: 'white',
+        textAlign: 'center',
+        animation: 'tutorialSlideIn 0.5s ease-out'
+      }}>
+        {/* Progress indicator */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '20px',
+          gap: '8px'
+        }}>
+          {TUTORIAL_STEPS.map((_, index) => (
+            <div
+              key={index}
+              style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                background: index <= step ? '#ffd700' : 'rgba(255, 255, 255, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+            />
+          ))}
+        </div>
+
+        <h2 style={{
+          margin: '0 0 20px 0',
+          fontSize: '2rem',
+          color: '#ffd700',
+          textShadow: '0 0 20px rgba(255, 215, 0, 0.5)'
+        }}>
+          {currentStep.title}
+        </h2>
+
+        <div style={{
+          fontSize: '1.1rem',
+          lineHeight: '1.6',
+          margin: '20px 0 30px 0',
+          color: 'rgba(255, 255, 255, 0.9)',
+          whiteSpace: 'pre-line'
+        }}>
+          {currentStep.content}
+        </div>
+
+        <div style={{
+          fontSize: '1rem',
+          margin: '20px 0',
+          padding: '15px',
+          background: 'rgba(255, 215, 0, 0.1)',
+          border: '1px solid rgba(255, 215, 0, 0.3)',
+          borderRadius: '10px',
+          color: '#ffd700'
+        }}>
+          💡 {currentStep.action}
+        </div>
+
+        <div style={{
+          display: 'flex',
+          gap: '15px',
+          justifyContent: 'center',
+          marginTop: '25px'
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              borderRadius: '10px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            }}
+          >
+            Skip Tutorial
+          </button>
+
+          <button
+            onClick={onNext}
+            style={{
+              padding: '12px 24px',
+              border: 'none',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+              color: 'black',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              transition: 'all 0.3s ease',
+              minWidth: '120px'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 215, 0, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            {isLastStep ? 'Finish Tutorial' : 'Next Step'}
+          </button>
+        </div>
+      </div>
+
+      <style>
+        {`
+          @keyframes tutorialSlideIn {
+            0% { opacity: 0; transform: translateY(-50px) scale(0.9); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
 // Keyboard camera controls component
 const KeyboardCameraControls: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   const { camera } = useThree();
@@ -600,7 +801,11 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
   const [gameMode, setGameMode] = useState<'tutorial' | 'practice' | 'challenge'>('tutorial');
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [score, setScore] = useState(0);
-  const [message, setMessage] = useState('Welcome! Select atoms from the periodic table to start building molecules.');
+  const [message, setMessage] = useState('');
+
+  // Tutorial state
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   // 3D scene state
   const [placedAtoms, setPlacedAtoms] = useState<PlacedAtom[]>([]);
@@ -641,19 +846,26 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     setCameraControlsEnabled(true);
     setKeyboardControlsEnabled(true);
     
-    // Set appropriate welcome message
-    const messages = {
-      tutorial: 'Tutorial mode: Learn to create bonds manually! Try building Water (H2O) with the atoms that will appear.',
-      practice: 'Practice mode: Build any molecules you want! Add atoms from the periodic table and experiment freely.',
-      challenge: `Challenge mode: Build ${MOLECULES[0]?.formula} to start! Follow the instructions to complete each challenge.`
-    };
-    
-    setMessage(messages[mode]);
+    // Start tutorial if tutorial mode is selected
+    if (mode === 'tutorial') {
+      setTutorialStep(0);
+      setShowTutorial(true);
+    } else {
+      setShowTutorial(false);
+      // Set appropriate welcome message for other modes
+      const messages = {
+        practice: 'Practice mode: Build any molecules you want! Add atoms from the periodic table and experiment freely.',
+        challenge: `Challenge mode: Build ${MOLECULES[0]?.formula} to start! Follow the instructions to complete each challenge.`
+      };
+      
+      setMessage(messages[mode] || '');
+    }
   };
 
   // Go back to home page
   const handleBackToHome = () => {
     setCurrentScreen('home');
+    setShowTutorial(false);
     // Reset all game state
     setPlacedAtoms([]);
     setBonds([]);
@@ -668,6 +880,22 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     if (messageTimeoutRef.current) {
       clearTimeout(messageTimeoutRef.current);
     }
+  };
+
+  // Tutorial handlers
+  const handleTutorialNext = () => {
+    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+      setTutorialStep(tutorialStep + 1);
+    } else {
+      // Tutorial finished
+      setShowTutorial(false);
+      setMessage('Tutorial complete! You can now explore freely or try other game modes.');
+    }
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    setMessage('Tutorial skipped. You can now explore freely!');
   };
 
   // Send completion event
@@ -690,16 +918,18 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
     }
   }, [builtMolecules.length, score]);
 
-  // Helper function to show temporary messages
+  // Helper function to show temporary messages (but not in tutorial mode)
   const showMessage = useCallback((msg: string, duration = 3000) => {
-    setMessage(msg);
-    if (messageTimeoutRef.current) {
-      clearTimeout(messageTimeoutRef.current);
+    if (gameMode !== 'tutorial' || !showTutorial) {
+      setMessage(msg);
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+      messageTimeoutRef.current = setTimeout(() => {
+        setMessage('');
+      }, duration);
     }
-    messageTimeoutRef.current = setTimeout(() => {
-      setMessage('');
-    }, duration);
-  }, []);
+  }, [gameMode, showTutorial]);
 
   // Delete atom function
   const deleteAtom = useCallback((atomId: string) => {
@@ -1136,18 +1366,17 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
 
   // Add some starter atoms in tutorial mode
   useEffect(() => {
-    if (gameMode === 'tutorial' && placedAtoms.length === 0 && currentScreen === 'game') {
-      // Add H2O atoms for tutorial
+    if (gameMode === 'tutorial' && placedAtoms.length === 0 && currentScreen === 'game' && tutorialStep >= 2) {
+      // Add H2O atoms for tutorial (starting from step 2 - "Atoms Are Ready")
       setTimeout(() => {
         addAtom('H');
         setTimeout(() => {
           addAtom('H');
           setTimeout(() => addAtom('O'), 500);
         }, 500);
-        showMessage('Try building Water (H2O)! Left click = move atoms, Right click = move camera, WASD = camera movement, Bond Mode = connect atoms. Click an atom and press Delete/Suppr to remove it.', 10000);
       }, 1000);
     }
-  }, [gameMode, placedAtoms.length, currentScreen]);
+  }, [gameMode, placedAtoms.length, currentScreen, tutorialStep]);
 
   // Render home page or game based on current screen
   if (currentScreen === 'home') {
@@ -1234,6 +1463,15 @@ const Block: React.FC<BlockProps> = ({ title, description }) => {
         {/* Grid for reference */}
         <gridHelper args={[20, 20, '#333333', '#333333']} position={[0, -3, 0]} />
       </Canvas>
+
+      {/* Tutorial Modal */}
+      {showTutorial && (
+        <TutorialModal
+          step={tutorialStep}
+          onNext={handleTutorialNext}
+          onClose={handleTutorialClose}
+        />
+      )}
 
       {/* UI Overlay */}
       <GameUI
