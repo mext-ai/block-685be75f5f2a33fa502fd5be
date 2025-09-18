@@ -109,6 +109,41 @@ const HomePage: React.FC<{ onModeSelect: (mode: 'tutorial' | 'practice' | 'chall
         NH₃
       </div>
 
+      {/* Instructions Box - Top Right */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        background: 'rgba(0, 0, 0, 0.8)',
+        padding: '15px 20px',
+        borderRadius: '12px',
+        border: '2px solid rgba(0, 255, 255, 0.5)',
+        backdropFilter: 'blur(10px)',
+        fontSize: '12px',
+        maxWidth: '300px',
+        zIndex: 10,
+        animation: 'fadeIn 2s ease-out'
+      }}>
+        <div style={{ 
+          color: '#00ffff', 
+          fontWeight: 'bold', 
+          marginBottom: '8px',
+          textAlign: 'center'
+        }}>
+          🎮 Quick Controls
+        </div>
+        <div style={{ 
+          lineHeight: '1.4',
+          color: 'rgba(255, 255, 255, 0.9)'
+        }}>
+          • <strong>WASD</strong> for camera movement<br/>
+          • <strong>Right-click</strong> to rotate<br/>
+          • <strong>Left-click</strong> to interact<br/>
+          • Build molecules by connecting atoms<br/>
+          • Learn chemistry through interactive play
+        </div>
+      </div>
+
       {/* Main Title */}
       <div style={{
         textAlign: 'center',
@@ -441,20 +476,6 @@ const HomePage: React.FC<{ onModeSelect: (mode: 'tutorial' | 'practice' | 'chall
             🎮 Goal-Oriented
           </div>
         </div>
-      </div>
-
-      {/* Footer Info */}
-      <div style={{
-        position: 'absolute',
-        bottom: '30px',
-        textAlign: 'center',
-        opacity: 0.6,
-        fontSize: '0.95rem',
-        zIndex: 2,
-        animation: 'fadeIn 3s ease-out'
-      }}>
-        <p style={{ margin: '5px 0' }}>🎮 Use WASD for camera movement • Right-click to rotate • Left-click to interact</p>
-        <p style={{ margin: '5px 0' }}>⚛️ Build molecules by connecting atoms • Learn chemistry through interactive play</p>
       </div>
 
       {/* CSS Animations */}
