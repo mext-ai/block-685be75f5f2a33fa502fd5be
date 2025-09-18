@@ -98,468 +98,306 @@ const HomePage: React.FC<{ onModeSelect: (mode: 'tutorial' | 'practice' | 'chall
   }, []);
 
   return (
-    <div style={{
-      width: '100vw',
-      height: '100vh',
-      background: 'linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'Arial, sans-serif',
-      color: 'white',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Animated background elements */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: `
-          radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 40% 80%, rgba(0, 255, 0, 0.05) 0%, transparent 50%)
-        `,
-        animation: 'float 6s ease-in-out infinite'
-      }} />
-
-      {/* Floating molecules animation */}
-      <div style={{
-        position: 'absolute',
-        top: '10%',
-        right: '10%',
-        fontSize: '3rem',
-        opacity: 0.3,
-        animation: 'floatMolecule 8s ease-in-out infinite'
-      }}>
-        H₂O
-      </div>
-      <div style={{
-        position: 'absolute',
-        bottom: '15%',
-        left: '8%',
-        fontSize: '2.5rem',
-        opacity: 0.2,
-        animation: 'floatMolecule 6s ease-in-out infinite reverse'
-      }}>
-        CO₂
-      </div>
-      <div style={{
-        position: 'absolute',
-        top: '20%',
-        left: '15%',
-        fontSize: '2rem',
-        opacity: 0.25,
-        animation: 'floatMolecule 10s ease-in-out infinite'
-      }}>
-        NH₃
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Animated background with particles */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-400/20 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-cyan-400/20 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-pink-400/20 via-transparent to-transparent"></div>
+        
+        {/* Floating particles */}
+        <div className="absolute top-10 left-10 w-2 h-2 bg-cyan-400/60 rounded-full animate-pulse"></div>
+        <div className="absolute top-20 right-20 w-1 h-1 bg-purple-400/40 rounded-full animate-ping"></div>
+        <div className="absolute bottom-20 left-20 w-3 h-3 bg-pink-400/30 rounded-full animate-bounce"></div>
+        <div className="absolute bottom-32 right-32 w-2 h-2 bg-yellow-400/50 rounded-full animate-pulse"></div>
+        <div className="absolute top-1/3 left-1/4 w-1 h-1 bg-green-400/40 rounded-full animate-ping"></div>
+        <div className="absolute top-2/3 right-1/3 w-2 h-2 bg-blue-400/30 rounded-full animate-bounce"></div>
       </div>
 
-      {/* Instructions Box - Top Right */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        background: 'rgba(0, 0, 0, 0.8)',
-        padding: '15px 20px',
-        borderRadius: '12px',
-        border: '2px solid rgba(0, 255, 255, 0.5)',
-        backdropFilter: 'blur(10px)',
-        fontSize: '12px',
-        maxWidth: '300px',
-        zIndex: 10,
-        animation: 'fadeIn 2s ease-out'
-      }}>
-        <div style={{ 
-          color: '#00ffff', 
-          fontWeight: 'bold', 
-          marginBottom: '8px',
-          textAlign: 'center'
-        }}>
-          🎮 Quick Controls
-        </div>
-        <div style={{ 
-          lineHeight: '1.4',
-          color: 'rgba(255, 255, 255, 0.9)'
-        }}>
-          • <strong>WASD</strong> for camera movement<br/>
-          • <strong>Right-click</strong> to rotate<br/>
-          • <strong>Left-click</strong> to interact<br/>
-          • <strong>Create Bonds:</strong> Enable Bond Mode, right-click two atoms<br/>
-          • Build molecules by connecting atoms<br/>
-          • Learn chemistry through interactive play
-        </div>
-      </div>
-
-      {/* Main Title */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '80px',
-        zIndex: 2,
-        animation: 'fadeInUp 1s ease-out'
-      }}>
-        <h1 style={{
-          fontSize: '4.5rem',
-          margin: 0,
-          background: 'linear-gradient(135deg, #00ffff 0%, #0099cc 50%, #ff6b6b 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          textShadow: '0 0 30px rgba(0,255,255,0.3)',
-          marginBottom: '20px',
-          fontWeight: 'bold'
-        }}>
-          🧪 Molecular Bonding Lab
-        </h1>
-        <p style={{
-          fontSize: '1.6rem',
-          margin: 0,
-          opacity: 0.9,
-          color: '#00ffff',
-          textShadow: '0 0 10px rgba(0,255,255,0.3)',
-          marginBottom: '10px'
-        }}>
-          Interactive 3D Chemistry Simulation
-        </p>
-        <p style={{
-          fontSize: '1.1rem',
-          margin: '10px 0 0 0',
-          opacity: 0.7,
-          maxWidth: '700px',
-          lineHeight: '1.6'
-        }}>
-          Master molecular bonding through hands-on experimentation. Build molecules, create chemical bonds, 
-          and discover the fundamental principles of chemistry in an immersive 3D environment.
-        </p>
-      </div>
-
-      {/* Welcome Message */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '50px',
-        zIndex: 2,
-        animation: 'fadeIn 2s ease-out'
-      }}>
-        <h2 style={{
-          fontSize: '2rem',
-          margin: '0 0 15px 0',
-          color: '#ffd700',
-          textShadow: '0 0 20px rgba(255,215,0,0.4)'
-        }}>
-          Choose Your Learning Path
-        </h2>
-        <p style={{
-          fontSize: '1rem',
-          opacity: 0.8,
-          maxWidth: '600px'
-        }}>
-          Select a game mode to begin your chemistry adventure. Each mode offers a unique learning experience 
-          tailored to different skill levels and goals.
-        </p>
-      </div>
-
-      {/* Mode Selection Cards */}
-      <div style={{
-        display: 'flex',
-        gap: '40px',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        zIndex: 2,
-        animation: 'slideInUp 1.5s ease-out'
-      }}>
-        {/* Tutorial Mode */}
-        <div
-          style={{
-            width: '300px',
-            height: '380px',
-            background: hoveredMode === 'tutorial' 
-              ? 'linear-gradient(135deg, rgba(255,215,0,0.25) 0%, rgba(255,140,0,0.15) 100%)'
-              : 'rgba(0, 0, 0, 0.4)',
-            border: hoveredMode === 'tutorial' 
-              ? '3px solid #ffd700' 
-              : '2px solid rgba(255,255,255,0.2)',
-            borderRadius: '25px',
-            padding: '35px',
-            cursor: 'pointer',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: hoveredMode === 'tutorial' ? 'translateY(-15px) scale(1.08)' : 'translateY(0) scale(1)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: hoveredMode === 'tutorial' 
-              ? '0 25px 50px rgba(255,215,0,0.4), 0 0 0 1px rgba(255,215,0,0.2)' 
-              : '0 15px 35px rgba(0,0,0,0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-          onMouseEnter={() => setHoveredMode('tutorial')}
-          onMouseLeave={() => setHoveredMode(null)}
-          onClick={() => onModeSelect('tutorial')}
-        >
-          {/* Background glow effect */}
-          {hoveredMode === 'tutorial' && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%)',
-              pointerEvents: 'none'
-            }} />
-          )}
-          
-          <div style={{
-            fontSize: '4.5rem',
-            marginBottom: '25px',
-            filter: hoveredMode === 'tutorial' ? 'brightness(1.3) drop-shadow(0 0 20px rgba(255,215,0,0.5))' : 'brightness(1)',
-            transition: 'all 0.3s ease'
-          }}>
-            📚
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-8">
+        {/* Header */}
+        <div className="text-center mb-16 animate-fade-in-up">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-3xl mb-6 shadow-2xl shadow-cyan-500/25">
+              <span className="text-4xl">🧪</span>
+            </div>
           </div>
-          <h3 style={{
-            fontSize: '2.2rem',
-            margin: '0 0 20px 0',
-            color: hoveredMode === 'tutorial' ? '#ffd700' : '#00ffff',
-            fontWeight: 'bold',
-            textShadow: hoveredMode === 'tutorial' ? '0 0 10px rgba(255,215,0,0.5)' : 'none'
-          }}>
-            Tutorial
-          </h3>
-          <p style={{
-            fontSize: '1.1rem',
-            lineHeight: '1.6',
-            opacity: 0.9,
-            margin: '0 0 25px 0',
-            flex: 1
-          }}>
-            Perfect for beginners! Learn the fundamentals of molecular bonding with guided step-by-step lessons and interactive examples.
+          
+          <h1 className="text-6xl md:text-7xl font-black mb-6 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight">
+            Molecular
+            <br />
+            Bonding Lab
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-slate-300 font-medium mb-4 max-w-2xl">
+            Master chemistry through interactive 3D experimentation
           </p>
-          <div style={{
-            marginTop: 'auto',
-            padding: '12px 20px',
-            background: hoveredMode === 'tutorial' 
-              ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
-              : 'rgba(255,255,255,0.1)',
-            borderRadius: '20px',
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            color: hoveredMode === 'tutorial' ? 'black' : 'white',
-            border: hoveredMode === 'tutorial' ? 'none' : '1px solid rgba(255,255,255,0.2)'
-          }}>
-            🎯 Guided Learning
+          
+          <p className="text-slate-400 max-w-3xl leading-relaxed">
+            Build molecules, create chemical bonds, and explore the fundamental principles 
+            of chemistry in an immersive environment powered by advanced 3D visualization.
+          </p>
+        </div>
+
+        {/* Feature highlights */}
+        <div className="flex flex-wrap justify-center gap-8 mb-16 text-sm">
+          {[
+            { icon: '⚛️', text: 'Interactive Atoms' },
+            { icon: '🔗', text: 'Real Bonding' },
+            { icon: '🎮', text: 'Gamified Learning' },
+            { icon: '🎯', text: 'Guided Tutorials' }
+          ].map((feature, index) => (
+            <div key={index} className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+              <span className="text-lg">{feature.icon}</span>
+              <span className="text-slate-300 font-medium">{feature.text}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Mode selection cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
+          {/* Tutorial Mode */}
+          <div
+            className={`group relative p-8 rounded-3xl border border-white/10 backdrop-blur-sm cursor-pointer transition-all duration-500 ${
+              hoveredMode === 'tutorial' 
+                ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-500/30 scale-105 shadow-2xl shadow-yellow-500/25' 
+                : 'bg-white/5 hover:bg-white/10'
+            }`}
+            onMouseEnter={() => setHoveredMode('tutorial')}
+            onMouseLeave={() => setHoveredMode(null)}
+            onClick={() => onModeSelect('tutorial')}
+          >
+            {/* Glow effect */}
+            <div className={`absolute inset-0 rounded-3xl transition-opacity duration-500 ${
+              hoveredMode === 'tutorial' ? 'opacity-100' : 'opacity-0'
+            } bg-gradient-to-br from-yellow-500/10 to-orange-500/10`}></div>
+            
+            <div className="relative z-10">
+              <div className="mb-6">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 transition-all duration-300 ${
+                  hoveredMode === 'tutorial' 
+                    ? 'bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg shadow-yellow-500/25' 
+                    : 'bg-gradient-to-br from-slate-600 to-slate-700'
+                }`}>
+                  <span className="text-2xl">📚</span>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Tutorial</h3>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                  hoveredMode === 'tutorial' 
+                    ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/30' 
+                    : 'bg-white/10 text-slate-300 border border-white/20'
+                }`}>
+                  Beginner Friendly
+                </span>
+              </div>
+              
+              <p className="text-slate-300 leading-relaxed mb-6">
+                Perfect introduction to molecular chemistry. Learn fundamental concepts through 
+                guided step-by-step lessons with interactive examples and real-time feedback.
+              </p>
+              
+              <div className="space-y-2 text-sm text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Step-by-step guidance
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Interactive examples
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Progress tracking
+                </div>
+              </div>
+              
+              <div className={`mt-6 flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${
+                hoveredMode === 'tutorial' 
+                  ? 'bg-yellow-400/20 border border-yellow-400/30' 
+                  : 'bg-white/5 border border-white/10'
+              }`}>
+                <span className="text-sm font-medium text-white">Start Learning</span>
+                <span className="text-lg">→</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Practice Mode */}
+          <div
+            className={`group relative p-8 rounded-3xl border border-white/10 backdrop-blur-sm cursor-pointer transition-all duration-500 ${
+              hoveredMode === 'practice' 
+                ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-cyan-500/30 scale-105 shadow-2xl shadow-cyan-500/25' 
+                : 'bg-white/5 hover:bg-white/10'
+            }`}
+            onMouseEnter={() => setHoveredMode('practice')}
+            onMouseLeave={() => setHoveredMode(null)}
+            onClick={() => onModeSelect('practice')}
+          >
+            {/* Glow effect */}
+            <div className={`absolute inset-0 rounded-3xl transition-opacity duration-500 ${
+              hoveredMode === 'practice' ? 'opacity-100' : 'opacity-0'
+            } bg-gradient-to-br from-cyan-500/10 to-blue-500/10`}></div>
+            
+            <div className="relative z-10">
+              <div className="mb-6">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 transition-all duration-300 ${
+                  hoveredMode === 'practice' 
+                    ? 'bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg shadow-cyan-500/25' 
+                    : 'bg-gradient-to-br from-slate-600 to-slate-700'
+                }`}>
+                  <span className="text-2xl">🔬</span>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Practice</h3>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                  hoveredMode === 'practice' 
+                    ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30' 
+                    : 'bg-white/10 text-slate-300 border border-white/20'
+                }`}>
+                  Free Exploration
+                </span>
+              </div>
+              
+              <p className="text-slate-300 leading-relaxed mb-6">
+                Unlimited experimentation workspace. Build any molecules you want, test different 
+                combinations, and explore chemistry at your own pace without restrictions.
+              </p>
+              
+              <div className="space-y-2 text-sm text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> No time limits
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Full periodic table
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Creative freedom
+                </div>
+              </div>
+              
+              <div className={`mt-6 flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${
+                hoveredMode === 'practice' 
+                  ? 'bg-cyan-400/20 border border-cyan-400/30' 
+                  : 'bg-white/5 border border-white/10'
+              }`}>
+                <span className="text-sm font-medium text-white">Start Exploring</span>
+                <span className="text-lg">→</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Challenge Mode */}
+          <div
+            className={`group relative p-8 rounded-3xl border border-white/10 backdrop-blur-sm cursor-pointer transition-all duration-500 ${
+              hoveredMode === 'challenge' 
+                ? 'bg-gradient-to-br from-pink-500/20 to-red-500/20 border-pink-500/30 scale-105 shadow-2xl shadow-pink-500/25' 
+                : 'bg-white/5 hover:bg-white/10'
+            }`}
+            onMouseEnter={() => setHoveredMode('challenge')}
+            onMouseLeave={() => setHoveredMode(null)}
+            onClick={() => onModeSelect('challenge')}
+          >
+            {/* Glow effect */}
+            <div className={`absolute inset-0 rounded-3xl transition-opacity duration-500 ${
+              hoveredMode === 'challenge' ? 'opacity-100' : 'opacity-0'
+            } bg-gradient-to-br from-pink-500/10 to-red-500/10`}></div>
+            
+            <div className="relative z-10">
+              <div className="mb-6">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 transition-all duration-300 ${
+                  hoveredMode === 'challenge' 
+                    ? 'bg-gradient-to-br from-pink-400 to-red-500 shadow-lg shadow-pink-500/25' 
+                    : 'bg-gradient-to-br from-slate-600 to-slate-700'
+                }`}>
+                  <span className="text-2xl">🏆</span>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Challenge</h3>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                  hoveredMode === 'challenge' 
+                    ? 'bg-pink-400/20 text-pink-300 border border-pink-400/30' 
+                    : 'bg-white/10 text-slate-300 border border-white/20'
+                }`}>
+                  Goal Oriented
+                </span>
+              </div>
+              
+              <p className="text-slate-300 leading-relaxed mb-6">
+                Test your molecular building skills. Complete specific molecular construction tasks, 
+                solve chemistry puzzles, and earn achievements in timed challenges.
+              </p>
+              
+              <div className="space-y-2 text-sm text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Specific objectives
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Achievement system
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span> Skill assessment
+                </div>
+              </div>
+              
+              <div className={`mt-6 flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${
+                hoveredMode === 'challenge' 
+                  ? 'bg-pink-400/20 border border-pink-400/30' 
+                  : 'bg-white/5 border border-white/10'
+              }`}>
+                <span className="text-sm font-medium text-white">Start Challenge</span>
+                <span className="text-lg">→</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Practice Mode */}
-        <div
-          style={{
-            width: '300px',
-            height: '380px',
-            background: hoveredMode === 'practice' 
-              ? 'linear-gradient(135deg, rgba(78,205,196,0.25) 0%, rgba(68,160,141,0.15) 100%)'
-              : 'rgba(0, 0, 0, 0.4)',
-            border: hoveredMode === 'practice' 
-              ? '3px solid #4ecdc4' 
-              : '2px solid rgba(255,255,255,0.2)',
-            borderRadius: '25px',
-            padding: '35px',
-            cursor: 'pointer',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: hoveredMode === 'practice' ? 'translateY(-15px) scale(1.08)' : 'translateY(0) scale(1)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: hoveredMode === 'practice' 
-              ? '0 25px 50px rgba(78,205,196,0.4), 0 0 0 1px rgba(78,205,196,0.2)' 
-              : '0 15px 35px rgba(0,0,0,0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-          onMouseEnter={() => setHoveredMode('practice')}
-          onMouseLeave={() => setHoveredMode(null)}
-          onClick={() => onModeSelect('practice')}
-        >
-          {/* Background glow effect */}
-          {hoveredMode === 'practice' && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'radial-gradient(circle at center, rgba(78,205,196,0.1) 0%, transparent 70%)',
-              pointerEvents: 'none'
-            }} />
-          )}
-          
-          <div style={{
-            fontSize: '4.5rem',
-            marginBottom: '25px',
-            filter: hoveredMode === 'practice' ? 'brightness(1.3) drop-shadow(0 0 20px rgba(78,205,196,0.5))' : 'brightness(1)',
-            transition: 'all 0.3s ease'
-          }}>
-            🔬
-          </div>
-          <h3 style={{
-            fontSize: '2.2rem',
-            margin: '0 0 20px 0',
-            color: hoveredMode === 'practice' ? '#4ecdc4' : '#00ffff',
-            fontWeight: 'bold',
-            textShadow: hoveredMode === 'practice' ? '0 0 10px rgba(78,205,196,0.5)' : 'none'
-          }}>
-            Practice
-          </h3>
-          <p style={{
-            fontSize: '1.1rem',
-            lineHeight: '1.6',
-            opacity: 0.9,
-            margin: '0 0 25px 0',
-            flex: 1
-          }}>
-            Unlimited experimentation! Build any molecules you want, test different combinations, and explore chemistry at your own pace.
-          </p>
-          <div style={{
-            marginTop: 'auto',
-            padding: '12px 20px',
-            background: hoveredMode === 'practice' 
-              ? 'linear-gradient(135deg, #4ecdc4 0%, #7bdcb5 100%)' 
-              : 'rgba(255,255,255,0.1)',
-            borderRadius: '20px',
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            color: hoveredMode === 'practice' ? 'white' : 'white',
-            border: hoveredMode === 'practice' ? 'none' : '1px solid rgba(255,255,255,0.2)'
-          }}>
-            🆓 Free Exploration
-          </div>
-        </div>
-
-        {/* Challenge Mode */}
-        <div
-          style={{
-            width: '300px',
-            height: '380px',
-            background: hoveredMode === 'challenge' 
-              ? 'linear-gradient(135deg, rgba(255,107,107,0.25) 0%, rgba(255,71,87,0.15) 100%)'
-              : 'rgba(0, 0, 0, 0.4)',
-            border: hoveredMode === 'challenge' 
-              ? '3px solid #ff6b6b' 
-              : '2px solid rgba(255,255,255,0.2)',
-            borderRadius: '25px',
-            padding: '35px',
-            cursor: 'pointer',
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: hoveredMode === 'challenge' ? 'translateY(-15px) scale(1.08)' : 'translateY(0) scale(1)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: hoveredMode === 'challenge' 
-              ? '0 25px 50px rgba(255,107,107,0.4), 0 0 0 1px rgba(255,107,107,0.2)' 
-              : '0 15px 35px rgba(0,0,0,0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-          onMouseEnter={() => setHoveredMode('challenge')}
-          onMouseLeave={() => setHoveredMode(null)}
-          onClick={() => onModeSelect('challenge')}
-        >
-          {/* Background glow effect */}
-          {hoveredMode === 'challenge' && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'radial-gradient(circle at center, rgba(255,107,107,0.1) 0%, transparent 70%)',
-              pointerEvents: 'none'
-            }} />
-          )}
-          
-          <div style={{
-            fontSize: '4.5rem',
-            marginBottom: '25px',
-            filter: hoveredMode === 'challenge' ? 'brightness(1.3) drop-shadow(0 0 20px rgba(255,107,107,0.5))' : 'brightness(1)',
-            transition: 'all 0.3s ease'
-          }}>
-            🏆
-          </div>
-          <h3 style={{
-            fontSize: '2.2rem',
-            margin: '0 0 20px 0',
-            color: hoveredMode === 'challenge' ? '#ff6b6b' : '#00ffff',
-            fontWeight: 'bold',
-            textShadow: hoveredMode === 'challenge' ? '0 0 10px rgba(255,107,107,0.5)' : 'none'
-          }}>
-            Challenge
-          </h3>
-          <p style={{
-            fontSize: '1.1rem',
-            lineHeight: '1.6',
-            opacity: 0.9,
-            margin: '0 0 25px 0',
-            flex: 1
-          }}>
-            Test your skills! Complete specific molecular building tasks, solve chemistry puzzles, and earn achievements.
-          </p>
-          <div style={{
-            marginTop: 'auto',
-            padding: '12px 20px',
-            background: hoveredMode === 'challenge' 
-              ? 'linear-gradient(135deg, #ff6b6b 0%, #ff8a80 100%)' 
-              : 'rgba(255,255,255,0.1)',
-            borderRadius: '20px',
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            color: hoveredMode === 'challenge' ? 'white' : 'white',
-            border: hoveredMode === 'challenge' ? 'none' : '1px solid rgba(255,255,255,0.2)'
-          }}>
-            🎮 Goal-Oriented
+        {/* Quick controls hint */}
+        <div className="mt-16 p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 max-w-2xl">
+          <div className="text-center">
+            <div className="text-2xl mb-2">🎮</div>
+            <h4 className="text-lg font-semibold text-white mb-2">Quick Controls Preview</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm text-slate-300">
+              <div><span className="text-cyan-400 font-mono">WASD</span> Camera movement</div>
+              <div><span className="text-cyan-400 font-mono">Right-click</span> Bond atoms</div>
+              <div><span className="text-cyan-400 font-mono">Left-click</span> Move atoms</div>
+              <div><span className="text-cyan-400 font-mono">Mouse wheel</span> Zoom</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* CSS Animations */}
-      <style>
-        {`
-          @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            33% { transform: translateY(-10px) rotate(120deg); }
-            66% { transform: translateY(5px) rotate(240deg); }
+      {/* CSS animations */}
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
           }
-          
-          @keyframes floatMolecule {
-            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.2; }
-            25% { transform: translateY(-20px) translateX(10px); opacity: 0.3; }
-            50% { transform: translateY(-10px) translateX(-5px); opacity: 0.25; }
-            75% { transform: translateY(-30px) translateX(15px); opacity: 0.35; }
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
-          
-          @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-          
-          @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-          }
-          
-          @keyframes slideInUp {
-            0% { opacity: 0; transform: translateY(50px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 1s ease-out;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.5);
+        }
+      `}</style>
     </div>
   );
 };
