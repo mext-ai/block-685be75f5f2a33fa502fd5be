@@ -80,6 +80,12 @@ export const GameUI: React.FC<GameUIProps> = ({
   const [showInstructions, setShowInstructions] = useState(false);
   const [showPeriodicTable, setShowPeriodicTable] = useState(true);
   const [showAtomsList, setShowAtomsList] = useState(true);
+  const [expandedPanels, setExpandedPanels] = useState({
+    elements: true,
+    atoms: true,
+    molecules: true
+  });
+  
   const currentTarget = MOLECULES[currentChallenge];
 
   // Create periodic table grid
@@ -102,498 +108,324 @@ export const GameUI: React.FC<GameUIProps> = ({
   const getModeInfo = () => {
     switch (gameMode) {
       case 'tutorial':
-        return { name: 'Tutorial', color: '#ffd700', emoji: '📚' };
+        return { name: 'Tutorial', color: '#6366f1', emoji: '📚', bgGradient: 'from-indigo-500 to-purple-600' };
       case 'practice':
-        return { name: 'Practice', color: '#4ecdc4', emoji: '🔬' };
+        return { name: 'Practice', color: '#06b6d4', emoji: '🔬', bgGradient: 'from-cyan-500 to-blue-500' };
       case 'challenge':
-        return { name: 'Challenge', color: '#ff6b6b', emoji: '🏆' };
+        return { name: 'Challenge', color: '#f59e0b', emoji: '🏆', bgGradient: 'from-amber-500 to-orange-500' };
       default:
-        return { name: 'Game', color: '#00ffff', emoji: '🎮' };
+        return { name: 'Game', color: '#10b981', emoji: '🎮', bgGradient: 'from-emerald-500 to-teal-500' };
     }
   };
 
   const modeInfo = getModeInfo();
 
+  const togglePanel = (panel: keyof typeof expandedPanels) => {
+    setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
+  };
+
   return (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      pointerEvents: 'none',
-      fontFamily: 'Arial, sans-serif',
-      color: 'white'
-    }}>
-      {/* Top Header Bar */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '80px',
-        background: 'linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,51,102,0.8) 100%)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '2px solid #00ffff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 20px',
-        pointerEvents: 'auto',
-        zIndex: 1000
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Back to Home Button */}
-          <button
-            onClick={onBackToHome}
-            style={{
-              padding: '10px 15px',
-              border: 'none',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%)',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 4px 12px rgba(255,107,107,0.3)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(255,107,107,0.4)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,107,107,0.3)';
-            }}
-            title="Press ESC to go back to home"
-          >
-            ← Home
-          </button>
-
-          <div>
-            <h1 style={{ 
-              margin: 0, 
-              fontSize: '24px', 
-              color: '#00ffff', 
-              textShadow: '0 0 10px rgba(0,255,255,0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              🧪 Molecular Bonding Lab
-              <span style={{
-                fontSize: '16px',
-                background: `linear-gradient(135deg, ${modeInfo.color} 0%, ${modeInfo.color}aa 100%)`,
-                color: gameMode === 'tutorial' ? 'black' : 'white',
-                padding: '4px 12px',
-                borderRadius: '12px',
-                fontWeight: 'bold'
-              }}>
-                {modeInfo.emoji} {modeInfo.name}
-              </span>
-            </h1>
-            <p style={{ margin: '2px 0 0 0', fontSize: '12px', opacity: 0.8 }}>
-              Interactive 3D Chemistry Simulation • Press ESC for menu
-            </p>
-          </div>
-        </div>
-        
-        {/* Score and Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          {/* Bond Mode Status */}
-          {bondingMode && (
-            <div style={{
-              background: 'linear-gradient(135deg, #ffff00 0%, #ff9900 100%)',
-              color: 'black',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              animation: 'pulse 2s infinite'
-            }}>
-              🔗 BOND MODE
-              {firstAtomForBond && <span style={{ fontSize: '10px' }}>→ Select 2nd atom</span>}
-            </div>
-          )}
-          
-          {/* Keyboard Status */}
-          {keyboardControlsEnabled && (
-            <div style={{
-              background: 'rgba(0, 255, 0, 0.2)',
-              border: '1px solid #00ff00',
-              color: '#00ff00',
-              padding: '4px 8px',
-              borderRadius: '12px',
-              fontSize: '10px',
-              fontWeight: 'bold'
-            }}>
-              ⌨️ WASD
-            </div>
-          )}
-          
-          {/* Score Display */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,51,102,0.6) 100%)',
-            padding: '12px 20px',
-            borderRadius: '15px',
-            border: '2px solid #00ffff',
-            textAlign: 'center',
-            minWidth: '120px'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#00ffff' }}>
-              {score}
-            </div>
-            <div style={{ fontSize: '10px', opacity: 0.8 }}>
-              Score • {builtMolecules.length} molecules
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Left Sidebar */}
-      <div style={{
-        position: 'absolute',
-        top: '90px',
-        left: '10px',
-        width: '280px',
-        maxHeight: 'calc(100vh - 120px)',
-        overflowY: 'auto',
-        pointerEvents: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-      }}>
-        {/* Challenge Info */}
-        {gameMode === 'challenge' && currentTarget && (
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(255,215,0,0.9) 0%, rgba(255,140,0,0.8) 100%)',
-            color: 'black',
-            padding: '15px',
-            borderRadius: '12px',
-            border: '2px solid #ffff00',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>
-              🎯 Challenge {currentChallenge + 1}
-            </h3>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>
-              Build: {currentTarget.formula}
-            </div>
-            <div style={{ fontSize: '14px', opacity: 0.8, marginBottom: '8px' }}>
-              {currentTarget.name}
-            </div>
-            <div style={{ fontSize: '12px', display: 'flex', gap: '15px' }}>
-              <span><strong>Type:</strong> {currentTarget.bondType}</span>
-              <span><strong>Atoms:</strong> {currentTarget.atoms.join(', ')}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Atoms in Scene */}
-        {placedAtoms.length > 0 && showAtomsList && (
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.8)',
-            padding: '15px',
-            borderRadius: '12px',
-            border: '2px solid #4ecdc4',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#4ecdc4' }}>
-                ⚛️ Atoms in Scene ({placedAtoms.length})
-              </h3>
-              <button
-                onClick={() => setShowAtomsList(false)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#4ecdc4',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  padding: '0',
-                  width: '20px',
-                  height: '20px'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div style={{ fontSize: '12px', maxHeight: '150px', overflowY: 'auto' }}>
-              {placedAtoms.map((atom) => (
-                <div key={atom.id} style={{ 
-                  padding: '4px 0',
-                  color: atom.availableBonds > 0 ? '#00ff00' : '#ff9999',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderBottom: '1px solid rgba(255,255,255,0.1)'
-                }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{
-                      width: '16px',
-                      height: '16px',
-                      borderRadius: '50%',
-                      background: atom.atomData.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '8px',
-                      fontWeight: 'bold',
-                      color: 'white',
-                      textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
-                    }}>
-                      {atom.symbol}
-                    </div>
-                    {atom.atomData.name}
-                  </span>
-                  <span style={{ 
-                    background: atom.availableBonds > 0 ? 'rgba(0,255,0,0.2)' : 'rgba(255,0,0,0.2)',
-                    padding: '2px 6px',
-                    borderRadius: '8px',
-                    fontSize: '10px'
-                  }}>
-                    {atom.availableBonds} bonds
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Built Molecules */}
-        {builtMolecules.length > 0 && (
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.8)',
-            padding: '15px',
-            borderRadius: '12px',
-            border: '2px solid #00ff00',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#00ff00' }}>
-              ✅ Completed Molecules ({builtMolecules.length})
-            </h3>
-            <div style={{ fontSize: '14px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {builtMolecules.map((molecule, index) => (
-                <div key={index} style={{ 
-                  background: 'rgba(0,255,0,0.2)',
-                  padding: '4px 8px',
-                  borderRadius: '8px',
-                  border: '1px solid #00ff00',
-                  color: '#00ff00',
-                  fontWeight: 'bold'
-                }}>
-                  {molecule}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Right Sidebar - Controls */}
-      <div style={{
-        position: 'absolute',
-        top: '90px',
-        right: '10px',
-        width: '200px',
-        pointerEvents: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-      }}>
-        {/* Main Controls */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          padding: '15px',
-          borderRadius: '12px',
-          border: '2px solid #00ffff',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#00ffff' }}>🎮 Controls</h3>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="fixed inset-0 pointer-events-none font-inter text-white">
+      {/* Modern Glass Morphism Header */}
+      <header className="fixed top-0 left-0 right-0 h-16 pointer-events-auto z-50">
+        <div className="h-full bg-black/20 backdrop-blur-xl border-b border-white/10 px-6 flex items-center justify-between">
+          {/* Left Section */}
+          <div className="flex items-center gap-4">
+            {/* Back Button */}
             <button
-              onClick={onToggleBondingMode}
-              style={{
-                padding: '12px 15px',
-                border: 'none',
-                borderRadius: '8px',
-                background: bondingMode 
-                  ? 'linear-gradient(135deg, #ffff00 0%, #ff9900 100%)' 
-                  : 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)',
-                color: bondingMode ? 'black' : 'white',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                transition: 'all 0.3s ease'
-              }}
+              onClick={onBackToHome}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 transition-all duration-300 hover:scale-105 backdrop-blur-sm"
+              title="Press ESC to go back"
             >
-              {bondingMode ? '🔗 Exit Bond Mode' : '🔗 Bond Mode'}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="text-sm font-medium">Home</span>
             </button>
 
+            {/* Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center text-lg">
+                🧪
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  Molecular Bonding Lab
+                </h1>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full bg-gradient-to-r ${modeInfo.bgGradient} text-white`}>
+                    {modeInfo.emoji} {modeInfo.name}
+                  </span>
+                  <span className="text-xs text-white/60">Interactive 3D Chemistry</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Section - Status Indicators */}
+          <div className="flex items-center gap-3">
+            {/* Bond Mode Indicator */}
+            {bondingMode && (
+              <div className="px-3 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl text-black text-sm font-bold animate-pulse">
+                🔗 BOND MODE {firstAtomForBond && '→ Select 2nd atom'}
+              </div>
+            )}
+
+            {/* Keyboard Status */}
+            {keyboardControlsEnabled && (
+              <div className="px-2 py-1 bg-green-500/20 border border-green-500/40 rounded-lg text-green-400 text-xs font-medium">
+                ⌨️ WASD
+              </div>
+            )}
+
+            {/* Score Display */}
+            <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="text-lg font-bold text-cyan-400">{score}</div>
+              <div className="text-xs text-white/60">{builtMolecules.length} molecules</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Modern Sidebar - Left */}
+      <aside className="fixed left-4 top-20 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto pointer-events-auto">
+        <div className="space-y-4">
+          {/* Challenge Card */}
+          {gameMode === 'challenge' && currentTarget && (
+            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-xl">
+                  🎯
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Challenge {currentChallenge + 1}</h3>
+                  <p className="text-white/60 text-sm">Build the target molecule</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-amber-400">{currentTarget.formula}</span>
+                  <span className="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-lg text-sm font-medium">
+                    {currentTarget.bondType}
+                  </span>
+                </div>
+                <p className="text-white/80">{currentTarget.name}</p>
+                <div className="flex flex-wrap gap-1">
+                  {currentTarget.atoms.map((atom, i) => (
+                    <span key={i} className="px-2 py-1 bg-white/10 rounded-lg text-xs">
+                      {atom}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Atoms in Scene */}
+          {placedAtoms.length > 0 && (
+            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+              <div 
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                onClick={() => togglePanel('atoms')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                    ⚛️
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Atoms in Scene</h3>
+                    <p className="text-white/60 text-sm">{placedAtoms.length} atoms placed</p>
+                  </div>
+                </div>
+                <svg 
+                  className={`w-5 h-5 transition-transform ${expandedPanels.atoms ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              
+              {expandedPanels.atoms && (
+                <div className="px-4 pb-4 space-y-2 max-h-48 overflow-y-auto">
+                  {placedAtoms.map((atom) => (
+                    <div 
+                      key={atom.id} 
+                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
+                          style={{ background: atom.atomData.color }}
+                        >
+                          {atom.symbol}
+                        </div>
+                        <span className="font-medium">{atom.atomData.name}</span>
+                      </div>
+                      <div className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                        atom.availableBonds > 0 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        {atom.availableBonds} bonds
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Built Molecules */}
+          {builtMolecules.length > 0 && (
+            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+              <div 
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                onClick={() => togglePanel('molecules')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                    ✅
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Completed Molecules</h3>
+                    <p className="text-white/60 text-sm">{builtMolecules.length} built</p>
+                  </div>
+                </div>
+                <svg 
+                  className={`w-5 h-5 transition-transform ${expandedPanels.molecules ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              
+              {expandedPanels.molecules && (
+                <div className="px-4 pb-4">
+                  <div className="flex flex-wrap gap-2">
+                    {builtMolecules.map((molecule, index) => (
+                      <div key={index} className="px-3 py-2 bg-green-500/20 border border-green-500/40 rounded-lg text-green-400 font-bold text-sm">
+                        {molecule}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Modern Control Panel - Right */}
+      <aside className="fixed right-4 top-20 w-64 pointer-events-auto">
+        <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
+              🎮
+            </div>
+            <h3 className="font-semibold text-lg">Controls</h3>
+          </div>
+
+          <div className="space-y-3">
+            {/* Bond Mode Toggle */}
+            <button
+              onClick={onToggleBondingMode}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
+                bondingMode
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg scale-105'
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
+            >
+              <span>🔗</span>
+              {bondingMode ? 'Exit Bond Mode' : 'Bond Mode'}
+            </button>
+
+            {/* Other Controls */}
             <button
               onClick={onToggleElectrons}
-              style={{
-                padding: '10px 15px',
-                border: 'none',
-                borderRadius: '8px',
-                background: showElectrons 
-                  ? 'linear-gradient(135deg, #00ffff 0%, #0099cc 100%)' 
-                  : 'rgba(255,255,255,0.1)',
-                color: showElectrons ? 'black' : 'white',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
+                showElectrons
+                  ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg'
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
             >
-              {showElectrons ? '🔴 Hide Electrons' : '⚡ Show Electrons'}
+              <span>{showElectrons ? '🔴' : '⚡'}</span>
+              {showElectrons ? 'Hide Electrons' : 'Show Electrons'}
             </button>
 
             <button
               onClick={onToggleKeyboardControls}
-              style={{
-                padding: '10px 15px',
-                border: 'none',
-                borderRadius: '8px',
-                background: keyboardControlsEnabled 
-                  ? 'linear-gradient(135deg, #00ff00 0%, #32cd32 100%)' 
-                  : 'rgba(255,255,255,0.1)',
-                color: keyboardControlsEnabled ? 'black' : 'white',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
+                keyboardControlsEnabled
+                  ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg'
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
             >
-              {keyboardControlsEnabled ? '⌨️ Keyboard ON' : '⌨️ Keyboard OFF'}
+              <span>⌨️</span>
+              Keyboard {keyboardControlsEnabled ? 'ON' : 'OFF'}
             </button>
-            
+
             <button
               onClick={() => setShowInstructions(!showInstructions)}
-              style={{
-                padding: '10px 15px',
-                border: 'none',
-                borderRadius: '8px',
-                background: showInstructions 
-                  ? 'linear-gradient(135deg, #ffff00 0%, #ffd700 100%)' 
-                  : 'rgba(255,255,255,0.1)',
-                color: showInstructions ? 'black' : 'white',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all duration-300"
             >
-              {showInstructions ? '📖 Hide Help' : '❓ Show Help'}
+              <span>{showInstructions ? '📖' : '❓'}</span>
+              {showInstructions ? 'Hide Help' : 'Show Help'}
             </button>
-            
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '5px 0' }} />
-            
+
+            <div className="h-px bg-white/20 my-4" />
+
             <button
               onClick={onReset}
-              style={{
-                padding: '10px 15px',
-                border: 'none',
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%)',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 transition-all duration-300"
             >
-              🔄 Reset Scene
+              <span>🔄</span>
+              Reset Scene
             </button>
 
             {gameMode === 'challenge' && (
               <button
                 onClick={onNextChallenge}
-                style={{
-                  padding: '10px 15px',
-                  border: 'none',
-                  borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 'bold'
-                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium bg-gradient-to-r from-cyan-500 to-blue-500 text-white transition-all duration-300 hover:scale-105 shadow-lg"
               >
-                ➡️ Next Challenge
+                <span>➡️</span>
+                Next Challenge
               </button>
             )}
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* Bottom Panel - Periodic Table */}
-      <div style={{
-        position: 'absolute',
-        bottom: '10px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        pointerEvents: 'auto'
-      }}>
+      {/* Modern Periodic Table - Bottom */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto">
         {showPeriodicTable ? (
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.95)',
-            padding: '15px',
-            borderRadius: '15px',
-            border: '2px solid #00ffff',
-            backdropFilter: 'blur(15px)',
-            boxShadow: '0 10px 30px rgba(0,255,255,0.3)'
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '12px'
-            }}>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#00ffff' }}>
-                🧪 Periodic Table
-              </h3>
+          <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl max-w-6xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+                  🧪
+                </div>
+                <h3 className="font-semibold text-lg">Periodic Table</h3>
+              </div>
               <button
                 onClick={() => setShowPeriodicTable(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  border: '1px solid #00ffff',
-                  color: '#00ffff',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  fontWeight: 'bold'
-                }}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
               >
-                ✕ Hide
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(18, 1fr)',
-              gridTemplateRows: 'repeat(6, 1fr)',
-              gap: '2px',
-              width: 'fit-content',
-              margin: '0 auto'
-            }}>
+
+            <div className="grid grid-cols-18 gap-1 mb-4" style={{ gridTemplateColumns: 'repeat(18, minmax(0, 1fr))' }}>
               {periodicGrid.map((row, rowIndex) =>
                 row.map((symbol, colIndex) => {
                   if (!symbol || !ATOMS[symbol]) {
-                    return (
-                      <div
-                        key={`${rowIndex}-${colIndex}`}
-                        style={{
-                          width: '28px',
-                          height: '28px'
-                        }}
-                      />
-                    );
+                    return <div key={`${rowIndex}-${colIndex}`} className="w-8 h-8" />;
                   }
                   
                   const atom = ATOMS[symbol];
@@ -603,210 +435,146 @@ export const GameUI: React.FC<GameUIProps> = ({
                     <button
                       key={symbol}
                       onClick={() => onAtomSelect(symbol)}
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        border: isSelected ? '2px solid #ffff00' : '1px solid rgba(255,255,255,0.3)',
-                        borderRadius: '4px',
+                      className={`w-8 h-8 rounded-lg text-white text-xs font-bold transition-all duration-200 flex flex-col items-center justify-center shadow-lg hover:scale-110 ${
+                        isSelected 
+                          ? 'ring-2 ring-yellow-400 scale-110 shadow-yellow-400/50' 
+                          : 'hover:shadow-xl'
+                      }`}
+                      style={{ 
                         background: isSelected 
-                          ? `linear-gradient(135deg, ${atom.color}ff, ${atom.color}cc)` 
-                          : `linear-gradient(135deg, ${atom.color}aa, ${atom.color}88)`,
-                        color: 'white',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '9px',
-                        fontWeight: 'bold',
-                        textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                        padding: '1px',
-                        transition: 'all 0.2s ease',
-                        transform: isSelected ? 'scale(1.1)' : 'scale(1)',
-                        boxShadow: isSelected ? '0 0 10px rgba(255,255,0,0.5)' : 'none'
+                          ? `linear-gradient(135deg, ${atom.color}ff, ${atom.color}cc)`
+                          : `linear-gradient(135deg, ${atom.color}dd, ${atom.color}aa)`
                       }}
-                      title={`${atom.name} (${atom.symbol})\nAtomic #: ${atom.atomicNumber}\nValence: ${atom.valenceElectrons}e⁻\nGroup: ${atom.group}, Period: ${atom.period}`}
+                      title={`${atom.name} (${atom.symbol})\nAtomic #: ${atom.atomicNumber}\nValence: ${atom.valenceElectrons}e⁻`}
                     >
-                      <div style={{ fontSize: '10px', lineHeight: '1' }}>{symbol}</div>
-                      <div style={{ fontSize: '7px', lineHeight: '1', opacity: 0.8 }}>{atom.atomicNumber}</div>
+                      <div className="leading-none">{symbol}</div>
+                      <div className="text-[8px] opacity-80 leading-none">{atom.atomicNumber}</div>
                     </button>
                   );
                 })
               )}
             </div>
-            
-            <div style={{ 
-              marginTop: '10px', 
-              fontSize: '9px', 
-              color: '#888',
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '12px'
-            }}>
-              <span>🔴 Non-metals</span>
-              <span>🔵 Metals</span>
-              <span>🟡 Metalloids</span>
-              <span>⚪ Noble gases</span>
+
+            <div className="flex justify-center gap-4 text-xs text-white/60">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span>Non-metals</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span>Metals</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span>Metalloids</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <span>Noble gases</span>
+              </div>
             </div>
           </div>
         ) : (
           <button
             onClick={() => setShowPeriodicTable(true)}
-            style={{
-              padding: '15px 25px',
-              border: 'none',
-              borderRadius: '15px',
-              background: 'linear-gradient(135deg, #00ffff 0%, #0099cc 100%)',
-              color: 'black',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              boxShadow: '0 5px 15px rgba(0,255,255,0.3)'
-            }}
+            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
           >
-            🧪 Show Periodic Table
+            <span>🧪</span>
+            Show Periodic Table
           </button>
         )}
       </div>
 
-      {/* Floating Atoms List Toggle */}
-      {placedAtoms.length > 0 && !showAtomsList && (
-        <div style={{
-          position: 'absolute',
-          top: '90px',
-          left: '300px',
-          pointerEvents: 'auto'
-        }}>
-          <button
-            onClick={() => setShowAtomsList(true)}
-            style={{
-              padding: '8px 12px',
-              border: 'none',
-              borderRadius: '8px',
-              background: 'rgba(78, 205, 196, 0.8)',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              backdropFilter: 'blur(5px)'
-            }}
-          >
-            ⚛️ Show Atoms ({placedAtoms.length})
-          </button>
-        </div>
-      )}
-
-      {/* Message Display */}
+      {/* Modern Message Display */}
       {message && (
-        <div style={{
-          position: 'absolute',
-          top: '40%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          pointerEvents: 'auto',
-          zIndex: 2000
-        }}>
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.95)',
-            padding: '20px 30px',
-            borderRadius: '15px',
-            border: '2px solid #00ffff',
-            textAlign: 'center',
-            maxWidth: '500px',
-            backdropFilter: 'blur(15px)',
-            boxShadow: '0 10px 30px rgba(0,255,255,0.3)'
-          }}>
-            <div style={{ 
-              fontSize: '16px', 
-              color: '#00ffff',
-              lineHeight: '1.4'
-            }}>
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-50">
+          <div className="bg-black/80 backdrop-blur-xl rounded-2xl border border-cyan-500/50 p-6 shadow-2xl max-w-lg">
+            <div className="text-cyan-400 text-center leading-relaxed">
               {message}
             </div>
           </div>
         </div>
       )}
 
-      {/* Instructions Panel */}
+      {/* Modern Instructions Modal */}
       {showInstructions && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          pointerEvents: 'auto',
-          zIndex: 2000,
-          maxWidth: '90vw',
-          maxHeight: '80vh',
-          overflowY: 'auto'
-        }}>
-          <div style={{
-            background: 'rgba(0, 0, 0, 0.95)',
-            padding: '25px',
-            borderRadius: '15px',
-            border: '2px solid #ffff00',
-            backdropFilter: 'blur(15px)',
-            boxShadow: '0 10px 30px rgba(255,255,0,0.3)',
-            width: '600px'
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
-              <h3 style={{ margin: 0, fontSize: '20px', color: '#ffff00' }}>
-                📚 How to Play
-              </h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center pointer-events-auto z-50 p-4">
+          <div className="bg-black/80 backdrop-blur-xl rounded-2xl border border-white/20 p-8 max-w-4xl max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center text-xl">
+                  📚
+                </div>
+                <h2 className="text-2xl font-bold">How to Play</h2>
+              </div>
               <button
                 onClick={() => setShowInstructions(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  border: '1px solid #ffff00',
-                  color: '#ffff00',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontWeight: 'bold'
-                }}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
               >
-                ✕ Close
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '12px' }}>
-              <div>
-                <h4 style={{ margin: '0 0 10px 0', color: '#00ffff', fontSize: '14px' }}>🎮 Camera Controls</h4>
-                <ul style={{ margin: 0, paddingLeft: '15px', lineHeight: '1.6' }}>
-                  <li><strong>Right Click + Drag:</strong> Rotate camera</li>
-                  <li><strong>WASD Keys:</strong> Move camera position</li>
-                  <li><strong>Q/E Keys:</strong> Move camera up/down</li>
-                  <li><strong>IJKL Keys:</strong> Rotate camera view</li>
-                  <li><strong>Mouse Wheel:</strong> Zoom in/out</li>
-                </ul>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+                  <span>🎮</span> Camera Controls
+                </h3>
+                <div className="space-y-2 text-sm text-white/80">
+                  <div className="flex justify-between">
+                    <span>Right Click + Drag:</span>
+                    <span className="font-medium">Rotate camera</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>WASD Keys:</span>
+                    <span className="font-medium">Move camera</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Mouse Wheel:</span>
+                    <span className="font-medium">Zoom in/out</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Q/E Keys:</span>
+                    <span className="font-medium">Up/down movement</span>
+                  </div>
+                </div>
               </div>
-              
-              <div>
-                <h4 style={{ margin: '0 0 10px 0', color: '#00ffff', fontSize: '14px' }}>⚛️ Atom Controls</h4>
-                <ul style={{ margin: 0, paddingLeft: '15px', lineHeight: '1.6' }}>
-                  <li><strong>Add Atoms:</strong> Click elements in periodic table</li>
-                  <li><strong>Move Atoms:</strong> Left click + drag atoms</li>
-                  <li><strong>Create Bonds:</strong> Enable Bond Mode, click two atoms</li>
-                  <li><strong>Remove Bonds:</strong> Right-click on bond lines</li>
-                  <li><strong>Build Molecules:</strong> Follow bonding capacity limits</li>
-                  <li><strong>Example:</strong> H₂O = H + H + O, bond each H to O</li>
-                </ul>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+                  <span>⚛️</span> Atom Controls
+                </h3>
+                <div className="space-y-2 text-sm text-white/80">
+                  <div className="flex justify-between">
+                    <span>Add Atoms:</span>
+                    <span className="font-medium">Click periodic table</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Move Atoms:</span>
+                    <span className="font-medium">Left click + drag</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Create Bonds:</span>
+                    <span className="font-medium">Bond Mode + right click</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Remove Bonds:</span>
+                    <span className="font-medium">Right-click bond lines</span>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(0,255,255,0.1)', borderRadius: '8px' }}>
-              <h4 style={{ margin: '0 0 8px 0', color: '#00ffff', fontSize: '14px' }}>💡 Tips</h4>
-              <ul style={{ margin: 0, paddingLeft: '15px', fontSize: '12px', lineHeight: '1.6' }}>
+
+            <div className="mt-8 p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
+              <h4 className="font-semibold text-cyan-400 mb-2 flex items-center gap-2">
+                <span>💡</span> Pro Tips
+              </h4>
+              <ul className="text-sm text-white/80 space-y-1 list-disc list-inside">
                 <li>Start with simple molecules like H₂ or H₂O</li>
-                <li>Check atom bonding capacity (shown in atoms list)</li>
-                <li>Use Bond Mode to connect atoms precisely</li>
-                <li>Right-click on bond lines to remove unwanted bonds</li>
+                <li>Check atom bonding capacity in the atoms panel</li>
+                <li>Use Bond Mode for precise atom connections</li>
                 <li>Noble gases (He, Ne, Ar) don't form bonds</li>
                 <li>Press ESC to return to the main menu</li>
               </ul>
@@ -815,16 +583,16 @@ export const GameUI: React.FC<GameUIProps> = ({
         </div>
       )}
 
-      {/* CSS Animations */}
-      <style>
-        {`
-          @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-          }
-        `}
-      </style>
+      {/* Add Tailwind-style animations */}
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        .font-inter {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .grid-cols-18 {
+          grid-template-columns: repeat(18, minmax(0, 1fr));
+        }
+      `}</style>
     </div>
   );
 };
