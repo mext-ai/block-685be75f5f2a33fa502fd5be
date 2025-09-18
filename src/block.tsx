@@ -57,17 +57,17 @@ const TUTORIAL_STEPS = [
   },
   {
     title: "Creating Bonds ⚡",
-    content: "Now that Bond Mode is ON:\n1. Click on the Oxygen atom first\n2. Then click on a Hydrogen atom\n3. This creates a covalent bond!\n\nThe atoms will connect with a line.\n\n💡 Tip: You can also right-click on bonds to remove them if needed.",
+    content: "Now that Bond Mode is ON:\n1. LEFT-CLICK on the Oxygen atom first\n2. Then LEFT-CLICK on a Hydrogen atom\n3. This creates a covalent bond!\n\nThe atoms will connect with a line.\n\n💡 Tip: You can right-click on bond lines to remove them if needed.",
     action: "Create your first bond, then click Next"
   },
   {
     title: "Complete the Molecule 💧",
-    content: "Great! Now create a second bond:\n1. Click the Oxygen atom again\n2. Click the other Hydrogen atom\n\nThis will complete the H₂O (water) molecule!",
+    content: "Great! Now create a second bond:\n1. LEFT-CLICK the Oxygen atom again\n2. LEFT-CLICK the other Hydrogen atom\n\nThis will complete the H₂O (water) molecule!",
     action: "Create the second bond to finish water"
   },
   {
     title: "Removing Bonds 🔧",
-    content: "Good to know: If you make a mistake, you can remove bonds!\n• Right-click on any bond line to delete it\n• This allows you to fix errors and try again\n• Atoms will become available for new bonds",
+    content: "Good to know: If you make a mistake, you can remove bonds!\n• RIGHT-CLICK on any bond line to delete it\n• This allows you to fix errors and try again\n• Atoms will become available for new bonds",
     action: "Try right-clicking a bond, then click Next"
   },
   {
