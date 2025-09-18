@@ -793,6 +793,7 @@ export const GameUI: React.FC<GameUIProps> = ({
                   <li><strong>Add Atoms:</strong> Click elements in periodic table</li>
                   <li><strong>Move Atoms:</strong> Left click + drag atoms</li>
                   <li><strong>Create Bonds:</strong> Enable Bond Mode, click two atoms</li>
+                  <li><strong>Remove Bonds:</strong> Right-click on bond lines</li>
                   <li><strong>Build Molecules:</strong> Follow bonding capacity limits</li>
                   <li><strong>Example:</strong> H₂O = H + H + O, bond each H to O</li>
                 </ul>
@@ -805,6 +806,7 @@ export const GameUI: React.FC<GameUIProps> = ({
                 <li>Start with simple molecules like H₂ or H₂O</li>
                 <li>Check atom bonding capacity (shown in atoms list)</li>
                 <li>Use Bond Mode to connect atoms precisely</li>
+                <li>Right-click on bond lines to remove unwanted bonds</li>
                 <li>Noble gases (He, Ne, Ar) don't form bonds</li>
                 <li>Press ESC to return to the main menu</li>
               </ul>
