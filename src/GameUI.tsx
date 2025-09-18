@@ -108,13 +108,13 @@ export const GameUI: React.FC<GameUIProps> = ({
   const getModeInfo = () => {
     switch (gameMode) {
       case 'tutorial':
-        return { name: 'Tutorial', color: '#6366f1', emoji: '📚', bgGradient: 'from-indigo-500 to-purple-600' };
+        return { name: 'Tutorial', color: '#6366f1', emoji: '📚', gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' };
       case 'practice':
-        return { name: 'Practice', color: '#06b6d4', emoji: '🔬', bgGradient: 'from-cyan-500 to-blue-500' };
+        return { name: 'Practice', color: '#06b6d4', emoji: '🔬', gradient: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' };
       case 'challenge':
-        return { name: 'Challenge', color: '#f59e0b', emoji: '🏆', bgGradient: 'from-amber-500 to-orange-500' };
+        return { name: 'Challenge', color: '#f59e0b', emoji: '🏆', gradient: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)' };
       default:
-        return { name: 'Game', color: '#10b981', emoji: '🎮', bgGradient: 'from-emerald-500 to-teal-500' };
+        return { name: 'Game', color: '#10b981', emoji: '🎮', gradient: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)' };
     }
   };
 
@@ -124,221 +124,510 @@ export const GameUI: React.FC<GameUIProps> = ({
     setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
   };
 
-  return (
-    <div className="fixed inset-0 pointer-events-none font-inter text-white">
-      {/* Modern Glass Morphism Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 pointer-events-auto z-50">
-        <div className="h-full bg-black/20 backdrop-blur-xl border-b border-white/10 px-6 flex items-center justify-between">
-          {/* Left Section */}
-          <div className="flex items-center gap-4">
-            {/* Back Button */}
-            <button
-              onClick={onBackToHome}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 transition-all duration-300 hover:scale-105 backdrop-blur-sm"
-              title="Press ESC to go back"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="text-sm font-medium">Home</span>
-            </button>
+  // Modern card style
+  const cardStyle: React.CSSProperties = {
+    background: 'rgba(0, 0, 0, 0.4)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    borderRadius: '24px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+  };
 
-            {/* Title */}
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center text-lg">
-                🧪
-              </div>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  Molecular Bonding Lab
-                </h1>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full bg-gradient-to-r ${modeInfo.bgGradient} text-white`}>
-                    {modeInfo.emoji} {modeInfo.name}
-                  </span>
-                  <span className="text-xs text-white/60">Interactive 3D Chemistry</span>
-                </div>
+  // Modern button style
+  const buttonStyle: React.CSSProperties = {
+    border: 'none',
+    borderRadius: '16px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      pointerEvents: 'none',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      color: 'white',
+      fontSize: '14px',
+      lineHeight: '1.5'
+    }}>
+      {/* Modern Header */}
+      <header style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '80px',
+        background: 'rgba(0, 0, 0, 0.2)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '0 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        pointerEvents: 'auto',
+        zIndex: 50
+      }}>
+        {/* Left Section */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {/* Back Button */}
+          <button
+            onClick={onBackToHome}
+            style={{
+              ...buttonStyle,
+              padding: '12px 20px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+            title="Press ESC to go back"
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Home
+          </button>
+
+          {/* Title Section */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              🧪
+            </div>
+            <div>
+              <h1 style={{
+                margin: 0,
+                fontSize: '28px',
+                fontWeight: '700',
+                background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Molecular Bonding Lab
+              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                <span style={{
+                  padding: '4px 12px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  borderRadius: '12px',
+                  background: modeInfo.gradient,
+                  color: 'white'
+                }}>
+                  {modeInfo.emoji} {modeInfo.name}
+                </span>
+                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                  Interactive 3D Chemistry
+                </span>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Right Section - Status Indicators */}
-          <div className="flex items-center gap-3">
-            {/* Bond Mode Indicator */}
-            {bondingMode && (
-              <div className="px-3 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl text-black text-sm font-bold animate-pulse">
-                🔗 BOND MODE {firstAtomForBond && '→ Select 2nd atom'}
-              </div>
-            )}
+        {/* Right Section */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Bond Mode Indicator */}
+          {bondingMode && (
+            <div style={{
+              padding: '12px 20px',
+              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+              color: 'black',
+              borderRadius: '16px',
+              fontSize: '14px',
+              fontWeight: '700',
+              animation: 'pulse 2s infinite'
+            }}>
+              🔗 BOND MODE {firstAtomForBond && '→ Select 2nd atom'}
+            </div>
+          )}
 
-            {/* Keyboard Status */}
-            {keyboardControlsEnabled && (
-              <div className="px-2 py-1 bg-green-500/20 border border-green-500/40 rounded-lg text-green-400 text-xs font-medium">
-                ⌨️ WASD
-              </div>
-            )}
+          {/* Keyboard Status */}
+          {keyboardControlsEnabled && (
+            <div style={{
+              padding: '8px 12px',
+              background: 'rgba(34, 197, 94, 0.2)',
+              border: '1px solid rgba(34, 197, 94, 0.4)',
+              borderRadius: '12px',
+              color: '#22c55e',
+              fontSize: '12px',
+              fontWeight: '600'
+            }}>
+              ⌨️ WASD
+            </div>
+          )}
 
-            {/* Score Display */}
-            <div className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-              <div className="text-lg font-bold text-cyan-400">{score}</div>
-              <div className="text-xs text-white/60">{builtMolecules.length} molecules</div>
+          {/* Score Display */}
+          <div style={{
+            padding: '16px 24px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#06b6d4' }}>{score}</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', marginTop: '2px' }}>
+              {builtMolecules.length} molecules
             </div>
           </div>
         </div>
       </header>
 
-      {/* Modern Sidebar - Left */}
-      <aside className="fixed left-4 top-20 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto pointer-events-auto">
-        <div className="space-y-4">
-          {/* Challenge Card */}
-          {gameMode === 'challenge' && currentTarget && (
-            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-xl">
-                  🎯
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg">Challenge {currentChallenge + 1}</h3>
-                  <p className="text-white/60 text-sm">Build the target molecule</p>
-                </div>
+      {/* Left Sidebar */}
+      <aside style={{
+        position: 'fixed',
+        left: '20px',
+        top: '100px',
+        width: '320px',
+        maxHeight: 'calc(100vh - 140px)',
+        overflowY: 'auto',
+        pointerEvents: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        {/* Challenge Card */}
+        {gameMode === 'challenge' && currentTarget && (
+          <div style={{ ...cardStyle, padding: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px'
+              }}>
+                🎯
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-amber-400">{currentTarget.formula}</span>
-                  <span className="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-lg text-sm font-medium">
-                    {currentTarget.bondType}
-                  </span>
-                </div>
-                <p className="text-white/80">{currentTarget.name}</p>
-                <div className="flex flex-wrap gap-1">
-                  {currentTarget.atoms.map((atom, i) => (
-                    <span key={i} className="px-2 py-1 bg-white/10 rounded-lg text-xs">
-                      {atom}
-                    </span>
-                  ))}
-                </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>
+                  Challenge {currentChallenge + 1}
+                </h3>
+                <p style={{ margin: '4px 0 0 0', color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                  Build the target molecule
+                </p>
               </div>
             </div>
-          )}
-
-          {/* Atoms in Scene */}
-          {placedAtoms.length > 0 && (
-            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
-              <div 
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors"
-                onClick={() => togglePanel('atoms')}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
-                    ⚛️
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Atoms in Scene</h3>
-                    <p className="text-white/60 text-sm">{placedAtoms.length} atoms placed</p>
-                  </div>
-                </div>
-                <svg 
-                  className={`w-5 h-5 transition-transform ${expandedPanels.atoms ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '32px', fontWeight: '700', color: '#f59e0b' }}>
+                  {currentTarget.formula}
+                </span>
+                <span style={{
+                  padding: '6px 12px',
+                  background: 'rgba(245, 158, 11, 0.2)',
+                  color: '#f59e0b',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}>
+                  {currentTarget.bondType}
+                </span>
               </div>
-              
-              {expandedPanels.atoms && (
-                <div className="px-4 pb-4 space-y-2 max-h-48 overflow-y-auto">
-                  {placedAtoms.map((atom) => (
-                    <div 
-                      key={atom.id} 
-                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
-                          style={{ background: atom.atomData.color }}
-                        >
-                          {atom.symbol}
-                        </div>
-                        <span className="font-medium">{atom.atomData.name}</span>
+              <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)', fontSize: '16px' }}>
+                {currentTarget.name}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {currentTarget.atoms.map((atom, i) => (
+                  <span key={i} style={{
+                    padding: '4px 10px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: '600'
+                  }}>
+                    {atom}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Atoms in Scene */}
+        {placedAtoms.length > 0 && (
+          <div style={{ ...cardStyle, overflow: 'hidden' }}>
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '20px',
+                cursor: 'pointer',
+                transition: 'background 0.2s ease'
+              }}
+              onClick={() => togglePanel('atoms')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px'
+                }}>
+                  ⚛️
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Atoms in Scene</h3>
+                  <p style={{ margin: '2px 0 0 0', color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                    {placedAtoms.length} atoms placed
+                  </p>
+                </div>
+              </div>
+              <svg 
+                width="20" 
+                height="20" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                style={{
+                  transform: expandedPanels.atoms ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.3s ease'
+                }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            
+            {expandedPanels.atoms && (
+              <div style={{ 
+                padding: '0 20px 20px 20px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px',
+                maxHeight: '250px',
+                overflowY: 'auto'
+              }}>
+                {placedAtoms.map((atom) => (
+                  <div 
+                    key={atom.id} 
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '12px',
+                      transition: 'background 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: atom.atomData.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                      }}>
+                        {atom.symbol}
                       </div>
-                      <div className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                        atom.availableBonds > 0 
-                          ? 'bg-green-500/20 text-green-400' 
-                          : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        {atom.availableBonds} bonds
-                      </div>
+                      <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                        {atom.atomData.name}
+                      </span>
+                    </div>
+                    <div style={{
+                      padding: '4px 12px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      background: atom.availableBonds > 0 
+                        ? 'rgba(34, 197, 94, 0.2)' 
+                        : 'rgba(239, 68, 68, 0.2)',
+                      color: atom.availableBonds > 0 ? '#22c55e' : '#ef4444'
+                    }}>
+                      {atom.availableBonds} bonds
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Built Molecules */}
+        {builtMolecules.length > 0 && (
+          <div style={{ ...cardStyle, overflow: 'hidden' }}>
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '20px',
+                cursor: 'pointer'
+              }}
+              onClick={() => togglePanel('molecules')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px'
+                }}>
+                  ✅
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Completed</h3>
+                  <p style={{ margin: '2px 0 0 0', color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                    {builtMolecules.length} molecules built
+                  </p>
+                </div>
+              </div>
+              <svg 
+                width="20" 
+                height="20" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                style={{
+                  transform: expandedPanels.molecules ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.3s ease'
+                }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            
+            {expandedPanels.molecules && (
+              <div style={{ padding: '0 20px 20px 20px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {builtMolecules.map((molecule, index) => (
+                    <div key={index} style={{
+                      padding: '8px 16px',
+                      background: 'rgba(34, 197, 94, 0.2)',
+                      border: '1px solid rgba(34, 197, 94, 0.4)',
+                      borderRadius: '12px',
+                      color: '#22c55e',
+                      fontWeight: '700',
+                      fontSize: '14px'
+                    }}>
+                      {molecule}
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Built Molecules */}
-          {builtMolecules.length > 0 && (
-            <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
-              <div 
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors"
-                onClick={() => togglePanel('molecules')}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
-                    ✅
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Completed Molecules</h3>
-                    <p className="text-white/60 text-sm">{builtMolecules.length} built</p>
-                  </div>
-                </div>
-                <svg 
-                  className={`w-5 h-5 transition-transform ${expandedPanels.molecules ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
               </div>
-              
-              {expandedPanels.molecules && (
-                <div className="px-4 pb-4">
-                  <div className="flex flex-wrap gap-2">
-                    {builtMolecules.map((molecule, index) => (
-                      <div key={index} className="px-3 py-2 bg-green-500/20 border border-green-500/40 rounded-lg text-green-400 font-bold text-sm">
-                        {molecule}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </aside>
 
-      {/* Modern Control Panel - Right */}
-      <aside className="fixed right-4 top-20 w-64 pointer-events-auto">
-        <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
+      {/* Right Control Panel */}
+      <aside style={{
+        position: 'fixed',
+        right: '20px',
+        top: '100px',
+        width: '280px',
+        pointerEvents: 'auto'
+      }}>
+        <div style={{ ...cardStyle, padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px'
+            }}>
               🎮
             </div>
-            <h3 className="font-semibold text-lg">Controls</h3>
+            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>Controls</h3>
           </div>
 
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* Bond Mode Toggle */}
             <button
               onClick={onToggleBondingMode}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                bondingMode
-                  ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg scale-105'
-                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-              }`}
+              style={{
+                ...buttonStyle,
+                width: '100%',
+                padding: '16px 20px',
+                background: bondingMode
+                  ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
+                  : 'rgba(255, 255, 255, 0.1)',
+                color: bondingMode ? 'black' : 'white',
+                border: bondingMode ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
+                transform: bondingMode ? 'scale(1.02)' : 'scale(1)',
+                boxShadow: bondingMode ? '0 8px 32px rgba(251, 191, 36, 0.3)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (!bondingMode) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                }
+                e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                if (!bondingMode) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                }
+                e.currentTarget.style.transform = bondingMode ? 'scale(1.02)' : 'scale(1)';
+              }}
             >
               <span>🔗</span>
               {bondingMode ? 'Exit Bond Mode' : 'Bond Mode'}
@@ -347,11 +636,29 @@ export const GameUI: React.FC<GameUIProps> = ({
             {/* Other Controls */}
             <button
               onClick={onToggleElectrons}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                showElectrons
-                  ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg'
-                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-              }`}
+              style={{
+                ...buttonStyle,
+                width: '100%',
+                padding: '12px 20px',
+                background: showElectrons
+                  ? 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)'
+                  : 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                border: showElectrons ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: showElectrons ? '0 4px 20px rgba(6, 182, 212, 0.3)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (!showElectrons) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                }
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                if (!showElectrons) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                }
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               <span>{showElectrons ? '🔴' : '⚡'}</span>
               {showElectrons ? 'Hide Electrons' : 'Show Electrons'}
@@ -359,11 +666,29 @@ export const GameUI: React.FC<GameUIProps> = ({
 
             <button
               onClick={onToggleKeyboardControls}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
-                keyboardControlsEnabled
-                  ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg'
-                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-              }`}
+              style={{
+                ...buttonStyle,
+                width: '100%',
+                padding: '12px 20px',
+                background: keyboardControlsEnabled
+                  ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                  : 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                border: keyboardControlsEnabled ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: keyboardControlsEnabled ? '0 4px 20px rgba(34, 197, 94, 0.3)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (!keyboardControlsEnabled) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                }
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                if (!keyboardControlsEnabled) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                }
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               <span>⌨️</span>
               Keyboard {keyboardControlsEnabled ? 'ON' : 'OFF'}
@@ -371,17 +696,47 @@ export const GameUI: React.FC<GameUIProps> = ({
 
             <button
               onClick={() => setShowInstructions(!showInstructions)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all duration-300"
+              style={{
+                ...buttonStyle,
+                width: '100%',
+                padding: '12px 20px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               <span>{showInstructions ? '📖' : '❓'}</span>
               {showInstructions ? 'Hide Help' : 'Show Help'}
             </button>
 
-            <div className="h-px bg-white/20 my-4" />
+            <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.2)', margin: '16px 0' }} />
 
             <button
               onClick={onReset}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 transition-all duration-300"
+              style={{
+                ...buttonStyle,
+                width: '100%',
+                padding: '12px 20px',
+                background: 'rgba(239, 68, 68, 0.2)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.4)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               <span>🔄</span>
               Reset Scene
@@ -390,7 +745,20 @@ export const GameUI: React.FC<GameUIProps> = ({
             {gameMode === 'challenge' && (
               <button
                 onClick={onNextChallenge}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium bg-gradient-to-r from-cyan-500 to-blue-500 text-white transition-all duration-300 hover:scale-105 shadow-lg"
+                style={{
+                  ...buttonStyle,
+                  width: '100%',
+                  padding: '12px 20px',
+                  background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                  color: 'white',
+                  boxShadow: '0 4px 20px rgba(6, 182, 212, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                }}
               >
                 <span>➡️</span>
                 Next Challenge
@@ -400,32 +768,78 @@ export const GameUI: React.FC<GameUIProps> = ({
         </div>
       </aside>
 
-      {/* Modern Periodic Table - Bottom */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+      {/* Modern Periodic Table */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        pointerEvents: 'auto'
+      }}>
         {showPeriodicTable ? (
-          <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl max-w-6xl">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center">
+          <div style={{
+            ...cardStyle,
+            padding: '24px',
+            maxWidth: '1200px'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: '20px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px'
+                }}>
                   🧪
                 </div>
-                <h3 className="font-semibold text-lg">Periodic Table</h3>
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>Periodic Table</h3>
               </div>
               <button
                 onClick={() => setShowPeriodicTable(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
+                style={{
+                  padding: '8px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+                }}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <div className="grid grid-cols-18 gap-1 mb-4" style={{ gridTemplateColumns: 'repeat(18, minmax(0, 1fr))' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(18, 1fr)',
+              gridTemplateRows: 'repeat(6, 1fr)',
+              gap: '3px',
+              marginBottom: '20px'
+            }}>
               {periodicGrid.map((row, rowIndex) =>
                 row.map((symbol, colIndex) => {
                   if (!symbol || !ATOMS[symbol]) {
-                    return <div key={`${rowIndex}-${colIndex}`} className="w-8 h-8" />;
+                    return <div key={`${rowIndex}-${colIndex}`} style={{ width: '36px', height: '36px' }} />;
                   }
                   
                   const atom = ATOMS[symbol];
@@ -435,41 +849,75 @@ export const GameUI: React.FC<GameUIProps> = ({
                     <button
                       key={symbol}
                       onClick={() => onAtomSelect(symbol)}
-                      className={`w-8 h-8 rounded-lg text-white text-xs font-bold transition-all duration-200 flex flex-col items-center justify-center shadow-lg hover:scale-110 ${
-                        isSelected 
-                          ? 'ring-2 ring-yellow-400 scale-110 shadow-yellow-400/50' 
-                          : 'hover:shadow-xl'
-                      }`}
-                      style={{ 
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        border: isSelected ? '2px solid #fbbf24' : '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '8px',
                         background: isSelected 
                           ? `linear-gradient(135deg, ${atom.color}ff, ${atom.color}cc)`
-                          : `linear-gradient(135deg, ${atom.color}dd, ${atom.color}aa)`
+                          : `linear-gradient(135deg, ${atom.color}dd, ${atom.color}aa)`,
+                        color: 'white',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
+                        padding: '2px',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: isSelected 
+                          ? '0 0 20px rgba(251, 191, 36, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3)' 
+                          : '0 2px 8px rgba(0, 0, 0, 0.2)'
                       }}
                       title={`${atom.name} (${atom.symbol})\nAtomic #: ${atom.atomicNumber}\nValence: ${atom.valenceElectrons}e⁻`}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.4)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
+                        }
+                      }}
                     >
-                      <div className="leading-none">{symbol}</div>
-                      <div className="text-[8px] opacity-80 leading-none">{atom.atomicNumber}</div>
+                      <div style={{ fontSize: '12px', lineHeight: '1' }}>{symbol}</div>
+                      <div style={{ fontSize: '8px', lineHeight: '1', opacity: 0.8 }}>
+                        {atom.atomicNumber}
+                      </div>
                     </button>
                   );
                 })
               )}
             </div>
 
-            <div className="flex justify-center gap-4 text-xs text-white/60">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '24px',
+              fontSize: '12px',
+              color: 'rgba(255, 255, 255, 0.6)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '50%' }}></div>
                 <span>Non-metals</span>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>
                 <span>Metals</span>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#eab308', borderRadius: '50%' }}></div>
                 <span>Metalloids</span>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#a855f7', borderRadius: '50%' }}></div>
                 <span>Noble gases</span>
               </div>
             </div>
@@ -477,7 +925,21 @@ export const GameUI: React.FC<GameUIProps> = ({
         ) : (
           <button
             onClick={() => setShowPeriodicTable(true)}
-            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+            style={{
+              ...buttonStyle,
+              padding: '16px 24px',
+              background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+              color: 'white',
+              boxShadow: '0 8px 32px rgba(6, 182, 212, 0.3)',
+              fontSize: '16px',
+              fontWeight: '600'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            }}
           >
             <span>🧪</span>
             Show Periodic Table
@@ -487,9 +949,28 @@ export const GameUI: React.FC<GameUIProps> = ({
 
       {/* Modern Message Display */}
       {message && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-50">
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl border border-cyan-500/50 p-6 shadow-2xl max-w-lg">
-            <div className="text-cyan-400 text-center leading-relaxed">
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          pointerEvents: 'auto',
+          zIndex: 100
+        }}>
+          <div style={{
+            ...cardStyle,
+            padding: '24px 32px',
+            maxWidth: '600px',
+            textAlign: 'center',
+            border: '1px solid rgba(6, 182, 212, 0.5)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(6, 182, 212, 0.1)'
+          }}>
+            <div style={{
+              color: '#06b6d4',
+              fontSize: '16px',
+              lineHeight: '1.6',
+              fontWeight: '500'
+            }}>
               {message}
             </div>
           </div>
@@ -498,84 +979,169 @@ export const GameUI: React.FC<GameUIProps> = ({
 
       {/* Modern Instructions Modal */}
       {showInstructions && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center pointer-events-auto z-50 p-4">
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl border border-white/20 p-8 max-w-4xl max-h-[80vh] overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center text-xl">
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'auto',
+          zIndex: 100,
+          padding: '20px'
+        }}>
+          <div style={{
+            ...cardStyle,
+            padding: '32px',
+            maxWidth: '900px',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px'
+                }}>
                   📚
                 </div>
-                <h2 className="text-2xl font-bold">How to Play</h2>
+                <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>How to Play</h2>
               </div>
               <button
                 onClick={() => setShowInstructions(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
+                style={{
+                  padding: '12px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+                }}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '32px' }}>
+              <div>
+                <h3 style={{ 
+                  margin: '0 0 20px 0', 
+                  color: '#06b6d4', 
+                  fontSize: '20px', 
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
                   <span>🎮</span> Camera Controls
                 </h3>
-                <div className="space-y-2 text-sm text-white/80">
-                  <div className="flex justify-between">
-                    <span>Right Click + Drag:</span>
-                    <span className="font-medium">Rotate camera</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>WASD Keys:</span>
-                    <span className="font-medium">Move camera</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Mouse Wheel:</span>
-                    <span className="font-medium">Zoom in/out</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Q/E Keys:</span>
-                    <span className="font-medium">Up/down movement</span>
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {[
+                    ['Right Click + Drag:', 'Rotate camera'],
+                    ['WASD Keys:', 'Move camera'],
+                    ['Mouse Wheel:', 'Zoom in/out'],
+                    ['Q/E Keys:', 'Up/down movement']
+                  ].map(([action, description], index) => (
+                    <div key={index} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '8px'
+                    }}>
+                      <span style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{action}</span>
+                      <span style={{ fontWeight: '600', color: 'white' }}>{description}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+              <div>
+                <h3 style={{ 
+                  margin: '0 0 20px 0', 
+                  color: '#06b6d4', 
+                  fontSize: '20px', 
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
                   <span>⚛️</span> Atom Controls
                 </h3>
-                <div className="space-y-2 text-sm text-white/80">
-                  <div className="flex justify-between">
-                    <span>Add Atoms:</span>
-                    <span className="font-medium">Click periodic table</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Move Atoms:</span>
-                    <span className="font-medium">Left click + drag</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Create Bonds:</span>
-                    <span className="font-medium">Bond Mode + right click</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Remove Bonds:</span>
-                    <span className="font-medium">Right-click bond lines</span>
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {[
+                    ['Add Atoms:', 'Click periodic table'],
+                    ['Move Atoms:', 'Left click + drag'],
+                    ['Create Bonds:', 'Bond Mode + right click'],
+                    ['Remove Bonds:', 'Right-click bond lines']
+                  ].map(([action, description], index) => (
+                    <div key={index} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '8px'
+                    }}>
+                      <span style={{ color: 'rgba(255, 255, 255, 0.8)' }}>{action}</span>
+                      <span style={{ fontWeight: '600', color: 'white' }}>{description}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
-              <h4 className="font-semibold text-cyan-400 mb-2 flex items-center gap-2">
+            <div style={{
+              padding: '24px',
+              background: 'rgba(6, 182, 212, 0.1)',
+              borderRadius: '16px',
+              border: '1px solid rgba(6, 182, 212, 0.2)'
+            }}>
+              <h4 style={{ 
+                margin: '0 0 16px 0', 
+                color: '#06b6d4', 
+                fontWeight: '600',
+                fontSize: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
                 <span>💡</span> Pro Tips
               </h4>
-              <ul className="text-sm text-white/80 space-y-1 list-disc list-inside">
-                <li>Start with simple molecules like H₂ or H₂O</li>
-                <li>Check atom bonding capacity in the atoms panel</li>
-                <li>Use Bond Mode for precise atom connections</li>
-                <li>Noble gases (He, Ne, Ar) don't form bonds</li>
+              <ul style={{
+                margin: 0,
+                padding: '0 0 0 20px',
+                color: 'rgba(255, 255, 255, 0.8)',
+                lineHeight: '1.6'
+              }}>
+                <li style={{ marginBottom: '8px' }}>Start with simple molecules like H₂ or H₂O</li>
+                <li style={{ marginBottom: '8px' }}>Check atom bonding capacity in the atoms panel</li>
+                <li style={{ marginBottom: '8px' }}>Use Bond Mode for precise atom connections</li>
+                <li style={{ marginBottom: '8px' }}>Noble gases (He, Ne, Ar) don't form bonds</li>
                 <li>Press ESC to return to the main menu</li>
               </ul>
             </div>
@@ -583,14 +1149,33 @@ export const GameUI: React.FC<GameUIProps> = ({
         </div>
       )}
 
-      {/* Add Tailwind-style animations */}
-      <style jsx>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        .font-inter {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
         }
-        .grid-cols-18 {
-          grid-template-columns: repeat(18, minmax(0, 1fr));
+        
+        * {
+          box-sizing: border-box;
+        }
+        
+        ::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.5);
         }
       `}</style>
     </div>
